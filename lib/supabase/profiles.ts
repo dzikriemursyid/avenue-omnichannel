@@ -12,7 +12,7 @@ export interface UserProfile {
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
@@ -30,7 +30,7 @@ export async function createUserProfile(
   fullName: string,
   role: UserProfile["role"] = "agent",
 ): Promise<UserProfile | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: profile, error } = await supabase
     .from("profiles")

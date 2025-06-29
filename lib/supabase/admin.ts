@@ -12,7 +12,7 @@ export interface Team {
 }
 
 export async function getAllUsers(): Promise<UserProfile[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: users, error } = await supabase
     .from("profiles")
@@ -34,7 +34,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 }
 
 export async function getAllTeams(): Promise<Team[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: teams, error } = await supabase.from("teams").select("*").order("name")
 
@@ -50,7 +50,7 @@ export async function updateUserProfile(
   userId: string,
   updates: Partial<Pick<UserProfile, "full_name" | "role" | "team_id" | "is_active">>,
 ): Promise<boolean> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.from("profiles").update(updates).eq("id", userId)
 
@@ -63,7 +63,7 @@ export async function updateUserProfile(
 }
 
 export async function deleteUser(userId: string): Promise<boolean> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // First delete from profiles (this will cascade to auth.users due to foreign key)
   const { error } = await supabase.from("profiles").delete().eq("id", userId)
@@ -77,7 +77,7 @@ export async function deleteUser(userId: string): Promise<boolean> {
 }
 
 export async function isAdmin(userId: string): Promise<boolean> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: profile, error } = await supabase.from("profiles").select("role").eq("id", userId).single()
 

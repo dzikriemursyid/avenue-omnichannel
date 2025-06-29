@@ -10,7 +10,7 @@ import { Send, Plus, Calendar, Users, TrendingUp, Play, Pause, MoreHorizontal } 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default async function CampaignsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

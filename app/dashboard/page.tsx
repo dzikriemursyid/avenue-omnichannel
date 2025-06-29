@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, MessageSquare, Send, TrendingUp } from "lucide-react"
 
 async function getDashboardStats(userId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Get basic counts (you can expand this based on user role and permissions)
   const [contactsResult, conversationsResult, campaignsResult] = await Promise.all([
@@ -22,7 +22,7 @@ async function getDashboardStats(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

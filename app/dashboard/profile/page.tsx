@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { UserProfileView } from "@/components/user-profile-view"
 
 export default async function ProfilePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

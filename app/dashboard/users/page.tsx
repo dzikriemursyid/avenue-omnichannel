@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { UserManagement } from "@/components/user-management"
 
 export default async function UsersPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -10,7 +10,7 @@ import { MessageSquare, Search, Filter, Plus, Clock, User, Phone } from "lucide-
 import Link from "next/link"
 
 export default async function ConversationsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -115,7 +115,7 @@ export default async function ConversationsPage() {
       </Card>
 
       {/* Conversations List */}
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {conversations.map((conversation) => (
           <Link key={conversation.id} href={`/dashboard/conversations/${conversation.id}`}>
             <Card className="hover:shadow-md transition-shadow cursor-pointer">

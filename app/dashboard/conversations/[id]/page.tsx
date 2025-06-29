@@ -11,7 +11,7 @@ interface ConversationPageProps {
 }
 
 export default async function ConversationPage({ params }: ConversationPageProps) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

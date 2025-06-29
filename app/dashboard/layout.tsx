@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   }
 
   // Get the user from the server
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -63,7 +63,7 @@ export default async function DashboardLayout({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 min-h-0 overflow-auto">
+        <div className="flex flex-1 flex-col gap-4 p-6 min-h-0 overflow-auto">
           <div className="w-full max-w-full">{children}</div>
         </div>
       </SidebarInset>

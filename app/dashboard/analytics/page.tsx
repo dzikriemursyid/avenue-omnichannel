@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Users, MessageSquare, Clock, Target, Award, Activity } from "lucide-react"
 
 export default async function AnalyticsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
