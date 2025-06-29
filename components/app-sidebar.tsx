@@ -10,7 +10,7 @@ import {
   Settings,
   UserCog,
   Building2,
-  ChevronDown,
+  ChevronUp,
   User,
   LogOut,
   Zap,
@@ -219,7 +219,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     <span className="truncate font-semibold">{user.full_name}</span>
                     <span className="truncate text-xs">{user.email}</span>
                   </div>
-                  <ChevronDown className="ml-auto size-4" />
+                  <ChevronUp className="ml-auto size-4" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
