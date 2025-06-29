@@ -44,10 +44,10 @@ export default function LoginForm() {
   }, [state, router])
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-lg shadow-lg">
       <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-white">Welcome back</h1>
-        <p className="text-lg text-gray-400">Sign in to your account</p>
+        <h1 className="text-4xl font-semibold tracking-tight text-gray-900">Welcome back</h1>
+        <p className="text-lg text-gray-600">Sign in to your account</p>
       </div>
 
       <div className="flex justify-center mb-8">
@@ -67,7 +67,7 @@ export default function LoginForm() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <Input
@@ -76,11 +76,11 @@ export default function LoginForm() {
               type="email"
               placeholder="you@example.com"
               required
-              className="bg-[#1c1c1c] border-gray-800 text-white placeholder:text-gray-500"
+              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <Input
@@ -88,16 +88,16 @@ export default function LoginForm() {
               name="password"
               type="password"
               required
-              className="bg-[#1c1c1c] border-gray-800 text-white"
+              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
             />
           </div>
         </div>
 
         <SubmitButton />
 
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-600">
           Don't have an account?{" "}
-          <Link href="/auth/sign-up" className="text-white hover:underline">
+          <Link href="/auth/sign-up" className="text-[#2b725e] hover:underline">
             Sign up
           </Link>
         </div>

@@ -139,7 +139,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="overflow-x-hidden">
         {/* Main Navigation */}
         {mainItems.length > 0 && (
           <SidebarGroup>
