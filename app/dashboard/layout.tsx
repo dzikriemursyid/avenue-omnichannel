@@ -8,32 +8,27 @@ import { Separator } from "@/components/ui/separator"
 import { Footer } from "@/components/footer"
 import { BreadcrumbNav } from "@/components/breadcrumb-nav"
 
-export default async function DashboardLayout({
-  children,
-}: {
+interface DashboardLayoutProps {
   children: React.ReactNode
-}) {
-  // If Supabase is not configured, redirect to setup
-  if (!isSupabaseConfigured) {
-    redirect("/")
-  }
+}
 
-  // Get the user from the server
+export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // If no user, redirect to login
   if (!user) {
     redirect("/auth/login")
   }
 
-  // Get user profile
   const profile = await getUserProfile(user.id)
-
   if (!profile) {
-    redirect("/")
+    redirect("/auth/setup-profile")
+  }
+
+  if (!profile.is_active) {
+    redirect("/auth/suspended")
   }
 
   return (

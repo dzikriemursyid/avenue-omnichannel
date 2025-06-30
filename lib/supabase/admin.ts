@@ -1,89 +1,119 @@
-import { createClient } from "./server"
-import type { UserProfile } from "./profiles"
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/database.types";
 
-export interface Team {
-  id: string
-  name: string
-  description?: string
-  leader_id?: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Team = Database["public"]["Tables"]["teams"]["Row"];
 
-export async function getAllUsers(): Promise<UserProfile[]> {
-  const supabase = await createClient()
+export async function getAllUsers(): Promise<Profile[]> {
+  const supabase = await createClient();
 
-  const { data: users, error } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select(`
+    .select(
+      `
       *,
       teams:team_id (
         id,
         name
       )
-    `)
-    .order("created_at", { ascending: false })
+    `
+    )
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching users:", error)
-    return []
+    console.error("Get users error:", error);
+    return [];
   }
 
-  return users || []
+  return data || [];
 }
 
 export async function getAllTeams(): Promise<Team[]> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: teams, error } = await supabase.from("teams").select("*").order("name")
+  const { data, error } = await supabase
+    .from("teams")
+    .select(
+      `
+      *,
+      leader:leader_id (
+        id,
+        full_name,
+        email
+      ),
+      members:profiles!team_id (
+        id,
+        full_name,
+        role,
+        is_active
+      )
+    `
+    )
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching teams:", error)
-    return []
+    console.error("Get teams error:", error);
+    return [];
   }
 
-  return teams || []
+  return data || [];
 }
 
-export async function updateUserProfile(
-  userId: string,
-  updates: Partial<Pick<UserProfile, "full_name" | "role" | "team_id" | "is_active">>,
-): Promise<boolean> {
-  const supabase = await createClient()
+export async function getUsersByTeam(teamId: string): Promise<Profile[]> {
+  const supabase = await createClient();
 
-  const { error } = await supabase.from("profiles").update(updates).eq("id", userId)
+  const { data, error } = await supabase.from("profiles").select("*").eq("team_id", teamId).eq("is_active", true).order("role", { ascending: true });
 
   if (error) {
-    console.error("Error updating user profile:", error)
-    return false
+    console.error("Get team users error:", error);
+    return [];
   }
 
-  return true
+  return data || [];
 }
 
-export async function deleteUser(userId: string): Promise<boolean> {
-  const supabase = await createClient()
+export async function getTeamLeaders(): Promise<Profile[]> {
+  const supabase = await createClient();
 
-  // First delete from profiles (this will cascade to auth.users due to foreign key)
-  const { error } = await supabase.from("profiles").delete().eq("id", userId)
+  const { data, error } = await supabase.from("profiles").select("*").eq("role", "leader").eq("is_active", true).order("full_name", { ascending: true });
 
   if (error) {
-    console.error("Error deleting user:", error)
-    return false
+    console.error("Get team leaders error:", error);
+    return [];
   }
 
-  return true
+  return data || [];
 }
 
 export async function isAdmin(userId: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: profile, error } = await supabase.from("profiles").select("role").eq("id", userId).single()
+  const { data, error } = await supabase.from("profiles").select("role").eq("id", userId).eq("role", "admin").single();
 
-  if (error || !profile) {
-    return false
+  if (error) {
+    return false;
   }
 
-  return profile.role === "admin"
+  return !!data;
+}
+
+export async function canManageTeam(userId: string, teamId: string): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { data: user } = await supabase.from("profiles").select("role, team_id").eq("id", userId).single();
+
+  if (!user) return false;
+
+  // Admin and GM can manage any team
+  if (user.role === "admin" || user.role === "general_manager") {
+    return true;
+  }
+
+  // Leaders can manage their own team
+  if (user.role === "leader" && user.team_id === teamId) {
+    return true;
+  }
+
+  return false;
 }

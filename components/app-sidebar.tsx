@@ -28,6 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -36,11 +37,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { UserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import Link from "next/link"
 import { signOut } from "@/lib/actions"
 import Image from "next/image"
+import { useActionState, useEffect, useTransition } from "react"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: UserProfile
@@ -114,6 +120,10 @@ const navigationItems = [
 ]
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+  const { setOpenMobile, isMobile } = useSidebar()
+
   // Filter navigation items based on user permissions
   const allowedItems = navigationItems.filter((item) => hasPermission(user.role, item.permission))
 
@@ -121,6 +131,44 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const mainItems = allowedItems.filter((item) => item.section === "main")
   const managementItems = allowedItems.filter((item) => item.section === "management")
   const adminItems = allowedItems.filter((item) => item.section === "admin")
+
+  // Handle navigation link click to close mobile sidebar
+  const handleNavigationClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
+
+  const handleSignOut = () => {
+    // Close mobile sidebar if on mobile
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+
+    startTransition(async () => {
+      try {
+        const result = await signOut()
+
+        if (result && result.success) {
+          toast.success("Signed Out Successfully", {
+            description: result.message,
+          })
+          // Add a small delay to allow toast to be visible before redirect
+          setTimeout(() => {
+            router.push("/auth/login")
+          }, 1500)
+        } else if (result && !result.success) {
+          toast.error("Sign Out Failed", {
+            description: result.message,
+          })
+        }
+      } catch (error) {
+        toast.error("Sign Out Failed", {
+          description: "An unexpected error occurred while signing out.",
+        })
+      }
+    })
+  }
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r bg-sidebar" {...props}>
@@ -149,7 +197,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 {mainItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={handleNavigationClick}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
@@ -170,7 +218,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 {managementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={handleNavigationClick}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
@@ -191,7 +239,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={handleNavigationClick}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
@@ -213,7 +261,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <span className="text-sm font-medium">{user.full_name.charAt(0).toUpperCase()}</span>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
+                      <AvatarFallback>{user.full_name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{user.full_name}</span>
@@ -229,27 +280,23 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 sideOffset={4}
               >
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile">
+                  <Link href="/dashboard/profile" onClick={handleNavigationClick}>
                     <User className="mr-2 h-4 w-4" />
                     My Profile
                   </Link>
                 </DropdownMenuItem>
                 {hasPermission(user.role, "manage_settings") && (
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">
+                    <Link href="/dashboard/settings" onClick={handleNavigationClick}>
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action={signOut} className="w-full">
-                    <button type="submit" className="flex w-full items-center">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </button>
-                  </form>
+                <DropdownMenuItem onClick={handleSignOut} disabled={isPending}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isPending ? "Signing Out..." : "Sign Out"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

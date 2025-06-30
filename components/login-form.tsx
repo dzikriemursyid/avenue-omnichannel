@@ -5,10 +5,10 @@ import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { signIn } from "@/lib/actions"
+import { toast } from "sonner"
 import Image from "next/image"
 
 function SubmitButton() {
@@ -36,10 +36,20 @@ export default function LoginForm() {
   const router = useRouter()
   const [state, formAction] = useActionState(signIn, null)
 
-  // Handle successful login by redirecting
+  // Handle login result with toast notifications
   useEffect(() => {
     if (state?.success) {
-      router.push("/")
+      toast.success("Login Successful", {
+        description: state.message || "Welcome back!",
+      })
+      // Add a small delay to allow toast to be visible before redirect
+      setTimeout(() => {
+        router.push("/")
+      }, 1500)
+    } else if (state?.message && !state.success) {
+      toast.error("Login Failed", {
+        description: state.message,
+      })
     }
   }, [state, router])
 
@@ -61,10 +71,6 @@ export default function LoginForm() {
       </div>
 
       <form action={formAction} className="space-y-5">
-        {state?.error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-700 px-4 py-3 rounded">{state.error}</div>
-        )}
-
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -96,10 +102,9 @@ export default function LoginForm() {
         <SubmitButton />
 
         <div className="text-center text-gray-600">
-          Don't have an account?{" "}
-          <Link href="/auth/sign-up" className="text-[#2b725e] hover:underline">
-            Sign up
-          </Link>
+          <p className="text-sm">
+            Don't have an account? Contact your administrator to create one for you.
+          </p>
         </div>
       </form>
     </div>

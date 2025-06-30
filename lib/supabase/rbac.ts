@@ -1,4 +1,4 @@
-import type { UserProfile } from "./profiles"
+import type { UserProfile } from "./profiles";
 
 export type Permission =
   | "view_dashboard"
@@ -15,7 +15,7 @@ export type Permission =
   | "view_teams"
   | "manage_users"
   | "manage_settings"
-  | "manage_integrations"
+  | "manage_integrations";
 
 const rolePermissions: Record<UserProfile["role"], Permission[]> = {
   agent: [
@@ -25,6 +25,7 @@ const rolePermissions: Record<UserProfile["role"], Permission[]> = {
     "view_contacts",
     "view_campaigns", // Only assigned campaigns
     "view_analytics", // Personal metrics only
+    "view_teams", // Can view their own team
   ],
   leader: [
     // All agent permissions
@@ -38,6 +39,7 @@ const rolePermissions: Record<UserProfile["role"], Permission[]> = {
     "view_analytics",
     "view_team_analytics",
     "manage_team",
+    "view_teams", // Can view their own team
   ],
   general_manager: [
     // All leader permissions
@@ -72,14 +74,14 @@ const rolePermissions: Record<UserProfile["role"], Permission[]> = {
     "manage_settings",
     "manage_integrations",
   ],
-}
+};
 
 export function hasPermission(userRole: UserProfile["role"], permission: Permission): boolean {
-  return rolePermissions[userRole].includes(permission)
+  return rolePermissions[userRole].includes(permission);
 }
 
 export function getUserPermissions(userRole: UserProfile["role"]): Permission[] {
-  return rolePermissions[userRole]
+  return rolePermissions[userRole];
 }
 
 export function canAccessRoute(userRole: UserProfile["role"], route: string): boolean {
@@ -92,10 +94,10 @@ export function canAccessRoute(userRole: UserProfile["role"], route: string): bo
     "/dashboard/teams": "view_teams",
     "/dashboard/users": "manage_users",
     "/dashboard/settings": "manage_settings",
-  }
+  };
 
-  const requiredPermission = routePermissions[route]
-  if (!requiredPermission) return true // Allow access to routes without specific permissions
+  const requiredPermission = routePermissions[route];
+  if (!requiredPermission) return true; // Allow access to routes without specific permissions
 
-  return hasPermission(userRole, requiredPermission)
+  return hasPermission(userRole, requiredPermission);
 }

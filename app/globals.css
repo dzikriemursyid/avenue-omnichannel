@@ -5,64 +5,73 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 20%;
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 20%;
-
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 9% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
-
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 9% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 240 5.9% 90%;
+    --sidebar-ring: 240 10% 3.9%;
   }
 
   .dark {
-    --background: 0 0% 10%;
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-
-    --card: 0 0% 10%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 10%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 15%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 9% 9%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 0 0% 15%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 100%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 9% 9%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 240 4.9% 83.9%;
   }
 }
 
@@ -70,7 +79,92 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Enhanced Toast Styling */
+@layer components {
+  .toaster {
+    --toast-bg: theme(colors.white);
+    --toast-border: theme(colors.gray.200);
+    --toast-text: theme(colors.gray.900);
+    --toast-description: theme(colors.gray.600);
+    --toast-success-bg: theme(colors.green.50);
+    --toast-success-border: theme(colors.green.200);
+    --toast-success-text: theme(colors.green.900);
+    --toast-error-bg: theme(colors.red.50);
+    --toast-error-border: theme(colors.red.200);
+    --toast-error-text: theme(colors.red.900);
+    --toast-warning-bg: theme(colors.yellow.50);
+    --toast-warning-border: theme(colors.yellow.200);
+    --toast-warning-text: theme(colors.yellow.900);
+  }
+
+  .dark .toaster {
+    --toast-bg: theme(colors.gray.800);
+    --toast-border: theme(colors.gray.700);
+    --toast-text: theme(colors.gray.100);
+    --toast-description: theme(colors.gray.300);
+    --toast-success-bg: theme(colors.green.900 / 0.2);
+    --toast-success-border: theme(colors.green.800);
+    --toast-success-text: theme(colors.green.100);
+    --toast-error-bg: theme(colors.red.900 / 0.2);
+    --toast-error-border: theme(colors.red.800);
+    --toast-error-text: theme(colors.red.100);
+    --toast-warning-bg: theme(colors.yellow.900 / 0.2);
+    --toast-warning-border: theme(colors.yellow.800);
+    --toast-warning-text: theme(colors.yellow.100);
+  }
+
+  /* Custom toast animations and improvements */
+  [data-sonner-toast] {
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--toast-border);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+  }
+
+  [data-sonner-toast][data-type="success"] {
+    background: var(--toast-success-bg);
+    border-color: var(--toast-success-border);
+    color: var(--toast-success-text);
+  }
+
+  [data-sonner-toast][data-type="error"] {
+    background: var(--toast-error-bg);
+    border-color: var(--toast-error-border);
+    color: var(--toast-error-text);
+  }
+
+  [data-sonner-toast][data-type="warning"] {
+    background: var(--toast-warning-bg);
+    border-color: var(--toast-warning-border);
+    color: var(--toast-warning-text);
+  }
+
+  [data-sonner-toast] [data-title] {
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  [data-sonner-toast] [data-description] {
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+
+  [data-sonner-toast] [data-close-button] {
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+
+  [data-sonner-toast] [data-close-button]:hover {
+    transform: scale(1.05);
   }
 }
