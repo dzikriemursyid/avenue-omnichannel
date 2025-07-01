@@ -317,4 +317,4 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
             </DialogContent>
         </Dialog>
     );
-} 
+}

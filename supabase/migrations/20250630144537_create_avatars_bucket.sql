@@ -31,4 +31,4 @@ CREATE POLICY "Users can delete own avatar" ON storage.objects
 
 -- Policy: Anyone can view avatars (public bucket)
 CREATE POLICY "Anyone can view avatars" ON storage.objects
-  FOR SELECT USING (bucket_id = 'avatars'); 
+  FOR SELECT USING (bucket_id = 'avatars');

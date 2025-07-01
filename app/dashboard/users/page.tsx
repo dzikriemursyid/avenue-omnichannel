@@ -32,4 +32,3 @@ export default async function UsersPage() {
 
   return <UserManagement users={users} teams={teams} currentUser={currentUser} />
 }
-

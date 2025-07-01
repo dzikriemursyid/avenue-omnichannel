@@ -1,112 +1,160 @@
 "use client"
 
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
+import type React from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { signIn } from "@/lib/actions"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from "lucide-react"
+import { signInWithEmail } from "@/lib/actions/auth"
 import { toast } from "sonner"
 import Image from "next/image"
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-
-  return (
-    <Button
-      type="submit"
-      disabled={pending}
-      className="w-full bg-[#2b725e] hover:bg-[#235e4c] text-white text-lg font-medium rounded-lg py-2.5 h-11"
-    >
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Signing in...
-        </>
-      ) : (
-        "Sign In"
-      )}
-    </Button>
-  )
-}
-
 export default function LoginForm() {
-  const router = useRouter()
-  const [state, formAction] = useActionState(signIn, null)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  // Handle login result with toast notifications
-  useEffect(() => {
-    if (state?.success) {
-      toast.success("Login Successful", {
-        description: state.message || "Welcome back!",
-      })
-      // Add a small delay to allow toast to be visible before redirect
-      setTimeout(() => {
-        router.push("/")
-      }, 1500)
-    } else if (state?.message && !state.success) {
-      toast.error("Login Failed", {
-        description: state.message,
-      })
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("password", password)
+
+      const result = await signInWithEmail(formData)
+
+      if (!result.success) {
+        setError(result.message)
+        toast.error(result.message)
+      } else {
+        toast.success("Successfully signed in!")
+      }
+    } catch (error) {
+      const errorMessage = "An unexpected error occurred. Please try again."
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
     }
-  }, [state, router])
+  }
 
   return (
-    <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-lg shadow-lg">
-      <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-gray-900">Welcome back</h1>
-        <p className="text-lg text-gray-600">Sign in to your account</p>
-      </div>
-
-      <div className="flex justify-center mb-8">
-        <Image
-          src="/images/logo-avenue.png"
-          alt="Avenue Developments Logo"
-          width={200}
-          height={100}
-          className="h-auto max-w-[200px]"
-        />
-      </div>
-
-      <form action={formAction} className="space-y-5">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              required
-              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-            />
+    <Card className="w-full shadow-lg border-0 bg-card">
+      <CardHeader className="space-y-4 text-center pb-6">
+        {/* Logo */}
+        <div className="flex justify-center mb-2">
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+            <Image src="/images/logo-avenue.png" alt="Avenue Logo" fill className="object-contain" priority />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground">Welcome Back</CardTitle>
+          <CardDescription className="text-muted-foreground text-sm sm:text-base">
+            Sign in to your account to continue
+          </CardDescription>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {error && (
+          <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+              Email Address
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+                className="pl-10 h-11 bg-background border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-sm font-medium text-foreground">
               Password
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-            />
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                className="pl-10 pr-10 h-11 bg-background border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full h-11 text-sm font-medium" disabled={isLoading || !email || !password}>
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Signing in...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </div>
+            )}
+          </Button>
+        </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">Need help?</span>
           </div>
         </div>
 
-        <SubmitButton />
-
-        <div className="text-center text-gray-600">
-          <p className="text-sm">
-            Don't have an account? Contact your administrator to create one for you.
-          </p>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Contact your administrator for account access</p>
         </div>
-      </form>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
