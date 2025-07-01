@@ -18,14 +18,5 @@ export default async function ProfilePage() {
     redirect("/")
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-        <p className="text-muted-foreground">View and manage your profile information.</p>
-      </div>
-
-      <UserProfileView profile={profile} />
-    </div>
-  )
+  return <UserProfileView profile={profile} />
 }

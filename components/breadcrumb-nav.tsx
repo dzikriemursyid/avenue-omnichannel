@@ -21,7 +21,7 @@ const breadcrumbMap: Record<string, string> = {
     teams: "Teams",
     users: "User Management",
     settings: "Settings",
-    integrations: "Integrations",
+
     profile: "Profile",
 }
 

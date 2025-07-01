@@ -75,20 +75,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL(fallbackUrl, request.url));
       }
 
-      // First-time login redirection based on role
-      if (currentPath === "/dashboard") {
-        const defaultRoutes = {
-          admin: "/dashboard/users",
-          general_manager: "/dashboard/analytics",
-          leader: "/dashboard/teams",
-          agent: "/dashboard/conversations",
-        };
-
-        const defaultRoute = defaultRoutes[profile.role as keyof typeof defaultRoutes];
-        if (defaultRoute && defaultRoute !== currentPath) {
-          return NextResponse.redirect(new URL(defaultRoute, request.url));
-        }
-      }
+      // Allow access to main dashboard page for all authenticated users
+      // No automatic redirection based on role
     } catch (error) {
       console.error("Middleware error:", error);
       // On error, redirect to login

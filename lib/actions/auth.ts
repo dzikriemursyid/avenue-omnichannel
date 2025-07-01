@@ -9,6 +9,11 @@ const SetupProfileSchema = z.object({
   phone: z.string().optional(),
 });
 
+const SignInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export async function completeProfileSetup(formData: FormData) {
   const supabase = await createClient();
 
@@ -69,4 +74,48 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/auth/login");
+}
+
+export async function signInWithEmail(formData: FormData) {
+  const supabase = await createClient();
+
+  try {
+    const rawData = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    const validation = SignInSchema.safeParse(rawData);
+    if (!validation.success) {
+      return {
+        success: false,
+        message: "Invalid email or password",
+        errors: validation.error.flatten().fieldErrors,
+      };
+    }
+
+    const { email, password } = validation.data;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Sign in error:", error);
+      return {
+        success: false,
+        message: error.message || "Failed to sign in",
+      };
+    }
+
+    if (data.user) {
+      return { success: true, message: "Successfully signed in" };
+    }
+
+    return { success: false, message: "Sign in failed" };
+  } catch (error) {
+    console.error("Sign in error:", error);
+    return { success: false, message: "An unexpected error occurred" };
+  }
 }

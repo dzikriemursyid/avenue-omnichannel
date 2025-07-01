@@ -165,320 +165,315 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
   }
 
   return (
-    <div className="page-background">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-              <p className="text-gray-600">Manage your account information and preferences</p>
-            </div>
-            {!isEditing && (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-                size="lg"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">My Profile</h2>
+          <p className="text-muted-foreground">View and manage your profile information.</p>
         </div>
+        {!isEditing && (
+          <Button
+            onClick={() => setIsEditing(true)}
+            size="lg"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Profile
+          </Button>
+        )}
+      </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Profile Card - Takes full width on mobile, 2 columns on desktop */}
-          <div className="xl:col-span-2">
-            <Card className="shadow-lg border-0 bg-white">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                <CardTitle className="flex items-center gap-3 text-xl text-gray-900">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <User className="h-5 w-5 text-blue-600" />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Profile Card - Takes full width on mobile, 2 columns on desktop */}
+        <div className="xl:col-span-2">
+          <Card className="shadow-lg border-0 bg-white">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-3 text-xl text-gray-900">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <User className="h-5 w-5 text-blue-600" />
+                </div>
+                Personal Information
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Your profile details and contact information
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="p-6">
+              {/* Avatar Section */}
+              <div className="flex flex-col sm:flex-row sm:items-start gap-6 mb-8">
+                <div className="flex flex-col items-center sm:items-start">
+                  <div className="relative group">
+                    <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-blue-100 shadow-lg">
+                      <AvatarImage src={previewUrl || undefined} alt={profile.full_name} />
+                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                        {profile.full_name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isEditing && (
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full shadow-lg bg-white border-2 border-blue-200 hover:bg-blue-50"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading}
+                      >
+                        <Camera className="h-4 w-4 text-blue-600" />
+                      </Button>
+                    )}
                   </div>
-                  Personal Information
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Your profile details and contact information
-                </CardDescription>
-              </CardHeader>
 
-              <CardContent className="p-6">
-                {/* Avatar Section */}
-                <div className="flex flex-col sm:flex-row sm:items-start gap-6 mb-8">
-                  <div className="flex flex-col items-center sm:items-start">
-                    <div className="relative group">
-                      <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-blue-100 shadow-lg">
-                        <AvatarImage src={previewUrl || undefined} alt={profile.full_name} />
-                        <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                          {profile.full_name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isEditing && (
+                  {isEditing && (
+                    <div className="mt-4 text-center sm:text-left">
+                      <div className="flex flex-col sm:flex-row gap-2 mb-2">
                         <Button
-                          variant="secondary"
-                          size="icon"
-                          className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full shadow-lg bg-white border-2 border-blue-200 hover:bg-blue-50"
+                          variant="outline"
+                          size="sm"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={isLoading}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
                         >
-                          <Camera className="h-4 w-4 text-blue-600" />
+                          <Upload className="h-3 w-3 mr-2" />
+                          Upload Photo
                         </Button>
-                      )}
-                    </div>
-
-                    {isEditing && (
-                      <div className="mt-4 text-center sm:text-left">
-                        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                        {profile.avatar_url && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={handleDeleteAvatar}
                             disabled={isLoading}
-                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                            className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
                           >
-                            <Upload className="h-3 w-3 mr-2" />
-                            Upload Photo
+                            <Trash2 className="h-3 w-3 mr-2" />
+                            Remove
                           </Button>
-                          {profile.avatar_url && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleDeleteAvatar}
-                              disabled={isLoading}
-                              className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
-                            >
-                              <Trash2 className="h-3 w-3 mr-2" />
-                              Remove
-                            </Button>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500">Max 2MB • JPG, PNG, GIF</p>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 space-y-1 text-center sm:text-left">
-                    <h2 className="text-2xl font-bold text-gray-900">{profile.full_name}</h2>
-                    <p className="text-gray-600">{profile.email}</p>
-                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
-                      <Badge className={`${roleColors[profile.role]} px-3 py-1 text-sm font-medium shadow-sm`}>
-                        <Shield className="h-3 w-3 mr-1" />
-                        {roleLabels[profile.role]}
-                      </Badge>
-                      <Badge variant={profile.is_active ? "default" : "secondary"} className="px-3 py-1 shadow-sm">
-                        <UserCheck className="h-3 w-3 mr-1" />
-                        {profile.is_active ? "Active" : "Inactive"}
-                      </Badge>
+                      <p className="text-xs text-gray-500">Max 2MB • JPG, PNG, GIF</p>
                     </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-1 text-center sm:text-left">
+                  <h2 className="text-2xl font-bold text-gray-900">{profile.full_name}</h2>
+                  <p className="text-gray-600">{profile.email}</p>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
+                    <Badge className={`${roleColors[profile.role]} px-3 py-1 text-sm font-medium shadow-sm`}>
+                      <Shield className="h-3 w-3 mr-1" />
+                      {roleLabels[profile.role]}
+                    </Badge>
+                    <Badge variant={profile.is_active ? "default" : "secondary"} className="px-3 py-1 shadow-sm">
+                      <UserCheck className="h-3 w-3 mr-1" />
+                      {profile.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="full_name" className="text-sm font-semibold text-gray-700">
+                    Full Name
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => handleInputChange("full_name", e.target.value)}
+                      disabled={isLoading}
+                      className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="font-medium text-gray-900">{profile.full_name}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-700">Email Address</Label>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700">{profile.email}</span>
                   </div>
                 </div>
 
-                <Separator className="my-6" />
-
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="full_name" className="text-sm font-semibold text-gray-700">
-                      Full Name
-                    </Label>
-                    {isEditing ? (
-                      <Input
-                        id="full_name"
-                        value={formData.full_name}
-                        onChange={(e) => handleInputChange("full_name", e.target.value)}
-                        disabled={isLoading}
-                        className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium text-gray-900">{profile.full_name}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-gray-700">Email Address</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="phone_number" className="text-sm font-semibold text-gray-700">
+                    Phone Number
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={(e) => handleInputChange("phone_number", e.target.value)}
+                      placeholder="Enter phone number"
+                      disabled={isLoading}
+                      className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  ) : (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{profile.email}</span>
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-700">{profile.phone_number || "Not provided"}</span>
                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="phone_number" className="text-sm font-semibold text-gray-700">
-                      Phone Number
-                    </Label>
-                    {isEditing ? (
-                      <Input
-                        id="phone_number"
-                        value={formData.phone_number}
-                        onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                        placeholder="Enter phone number"
-                        disabled={isLoading}
-                        className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-700">{profile.phone_number || "Not provided"}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-gray-700">Team Assignment</Label>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                      <Building2 className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{profile.team_id ? "Team Member" : "No team assigned"}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
-                {isEditing && (
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={isLoading}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      disabled={isLoading}
-                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {isLoading ? "Saving..." : "Save Changes"}
-                    </Button>
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-700">Team Assignment</Label>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                    <Building2 className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700">{profile.team_id ? "Team Member" : "No team assigned"}</span>
                   </div>
-                )}
+                </div>
+              </div>
 
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+              {isEditing && (
+                <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isLoading}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
+
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Account Details Sidebar */}
+        <div className="xl:col-span-1">
+          <div className="space-y-6">
+            {/* Account Info Card */}
+            <Card className="shadow-lg border-0 bg-white">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Calendar className="h-4 w-4 text-green-600" />
+                  </div>
+                  Account Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">Member Since</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {new Date(profile.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">Last Updated</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {new Date(profile.updated_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <Key className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">User ID</span>
+                    </div>
+                    <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-700">
+                      {profile.id.slice(0, 8)}...
+                    </span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Account Details Sidebar */}
-          <div className="xl:col-span-1">
-            <div className="space-y-6">
-              {/* Account Info Card */}
-              <Card className="shadow-lg border-0 bg-white">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                  <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Calendar className="h-4 w-4 text-green-600" />
-                    </div>
-                    Account Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Member Since</span>
-                      </div>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {new Date(profile.created_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Last Updated</span>
-                      </div>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {new Date(profile.updated_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <Key className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">User ID</span>
-                      </div>
-                      <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-700">
-                        {profile.id.slice(0, 8)}...
-                      </span>
-                    </div>
+            {/* Permissions Card */}
+            <Card className="shadow-lg border-0 bg-white">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-t-lg">
+                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Settings className="h-4 w-4 text-purple-600" />
                   </div>
-                </CardContent>
-              </Card>
+                  Permissions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
+                    <span className="text-sm text-gray-700">Dashboard Access</span>
+                    <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Active
+                    </Badge>
+                  </div>
 
-              {/* Permissions Card */}
-              <Card className="shadow-lg border-0 bg-white">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-t-lg">
-                  <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Settings className="h-4 w-4 text-purple-600" />
-                    </div>
-                    Permissions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                      <span className="text-sm text-gray-700">Dashboard Access</span>
-                      <Badge variant="outline" className="text-xs text-green-700 border-green-200">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Active
-                      </Badge>
-                    </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
+                    <span className="text-sm text-gray-700">Contact Management</span>
+                    <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Active
+                    </Badge>
+                  </div>
 
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                      <span className="text-sm text-gray-700">Contact Management</span>
-                      <Badge variant="outline" className="text-xs text-green-700 border-green-200">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Active
-                      </Badge>
-                    </div>
-
-                    {(profile.role === "admin" || profile.role === "general_manager" || profile.role === "leader") && (
-                      <>
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                          <span className="text-sm text-gray-700">Campaign Management</span>
-                          <Badge variant="outline" className="text-xs text-green-700 border-green-200">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                          <span className="text-sm text-gray-700">Analytics Access</span>
-                          <Badge variant="outline" className="text-xs text-green-700 border-green-200">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </Badge>
-                        </div>
-                      </>
-                    )}
-
-                    {profile.role === "admin" && (
+                  {(profile.role === "admin" || profile.role === "general_manager" || profile.role === "leader") && (
+                    <>
                       <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                        <span className="text-sm text-gray-700">User Management</span>
+                        <span className="text-sm text-gray-700">Campaign Management</span>
                         <Badge variant="outline" className="text-xs text-green-700 border-green-200">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Active
                         </Badge>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
+                        <span className="text-sm text-gray-700">Analytics Access</span>
+                        <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Active
+                        </Badge>
+                      </div>
+                    </>
+                  )}
+
+                  {profile.role === "admin" && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
+                      <span className="text-sm text-gray-700">User Management</span>
+                      <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Active
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

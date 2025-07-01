@@ -110,13 +110,7 @@ const navigationItems = [
     permission: "manage_settings" as const,
     section: "admin",
   },
-  {
-    title: "Integrations",
-    url: "/dashboard/integrations",
-    icon: Zap,
-    permission: "manage_integrations" as const,
-    section: "admin",
-  },
+
 ]
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {

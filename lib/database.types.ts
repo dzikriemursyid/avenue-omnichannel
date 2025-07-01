@@ -11,6 +11,8 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          phone_number: string | null;
+          avatar_url: string | null;
         };
         Insert: {
           id: string;
@@ -21,6 +23,8 @@ export type Database = {
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
+          phone_number?: string | null;
+          avatar_url?: string | null;
         };
         Update: {
           id?: string;
@@ -31,6 +35,8 @@ export type Database = {
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
+          phone_number?: string | null;
+          avatar_url?: string | null;
         };
       };
       teams: {

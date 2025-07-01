@@ -141,6 +141,8 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
           role,
           team_id: finalTeamId,
           is_active: true,
+          phone_number: null,
+          avatar_url: null,
         });
 
         if (manualProfileError) {

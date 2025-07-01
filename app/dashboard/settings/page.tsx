@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Settings, Zap, Shield, Bell, Database, Globe, Key, Webhook } from "lucide-react"
+import { Settings, Shield, Bell, Database, Globe, Key } from "lucide-react"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
       <div className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Manage system configuration, integrations, and security settings.
+          Manage system configuration and security settings.
         </p>
       </div>
 
@@ -40,9 +40,7 @@ export default async function SettingsPage() {
           <TabsTrigger value="general" className="text-xs sm:text-sm">
             General
           </TabsTrigger>
-          <TabsTrigger value="integrations" className="text-xs sm:text-sm">
-            Integrations
-          </TabsTrigger>
+
           <TabsTrigger value="security" className="text-xs sm:text-sm">
             Security
           </TabsTrigger>
@@ -121,69 +119,7 @@ export default async function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Integrations */}
-        <TabsContent value="integrations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Zap className="h-5 w-5 flex-shrink-0" />
-                WhatsApp Integration
-              </CardTitle>
-              <CardDescription>Configure WhatsApp Business API connection</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="twilio-sid">Twilio Account SID</Label>
-                <Input id="twilio-sid" placeholder="Enter your Twilio Account SID" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="twilio-token">Twilio Auth Token</Label>
-                <Input id="twilio-token" type="password" placeholder="Enter your Twilio Auth Token" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp-number">WhatsApp Business Number</Label>
-                <Input id="whatsapp-number" placeholder="+1234567890" />
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-0.5">
-                  <Label>Enable WhatsApp Integration</Label>
-                  <p className="text-sm text-muted-foreground">Allow sending and receiving WhatsApp messages</p>
-                </div>
-                <Switch />
-              </div>
-              <div className="flex justify-end">
-                <Button className="w-full sm:w-auto">Test Connection</Button>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Webhook className="h-5 w-5 flex-shrink-0" />
-                Webhook Configuration
-              </CardTitle>
-              <CardDescription>Set up webhooks for external integrations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="webhook-url">Webhook URL</Label>
-                <Input id="webhook-url" placeholder="https://your-domain.com/webhook" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="webhook-secret">Webhook Secret</Label>
-                <Input id="webhook-secret" type="password" placeholder="Enter webhook secret" />
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-0.5">
-                  <Label>Enable Webhooks</Label>
-                  <p className="text-sm text-muted-foreground">Send events to external systems</p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Security */}
         <TabsContent value="security" className="space-y-4">
@@ -336,7 +272,7 @@ export default async function SettingsPage() {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button variant="outline" className="justify-start bg-transparent">
-                    <Webhook className="h-4 w-4 mr-2" />
+                    <Database className="h-4 w-4 mr-2" />
                     Export System Logs
                   </Button>
                   <Button variant="outline" className="justify-start bg-transparent">

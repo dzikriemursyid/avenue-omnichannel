@@ -14,8 +14,7 @@ export type Permission =
   | "manage_team"
   | "view_teams"
   | "manage_users"
-  | "manage_settings"
-  | "manage_integrations";
+  | "manage_settings";
 
 const rolePermissions: Record<UserProfile["role"], Permission[]> = {
   agent: [
@@ -72,7 +71,6 @@ const rolePermissions: Record<UserProfile["role"], Permission[]> = {
     "view_teams",
     "manage_users",
     "manage_settings",
-    "manage_integrations",
   ],
 };
 
