@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { redirect } from "next/navigation"
-import Dashboard from "@/components/dashboard"
+import Dashboard from "@/components/dashboard/dashboard"
 
 async function getDashboardStats(userId: string) {
   const supabase = await createClient()

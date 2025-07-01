@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
-import Analytics from "@/components/analytics"
+import Analytics from "@/components/dashboard/analytics"
 
 // Mock analytics data based on role
 const getAnalyticsData = (role: string) => {

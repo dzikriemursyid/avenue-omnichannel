@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { getAllUsers, getAllTeams } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
-import { UserManagement } from "@/components/user-management"
+import { UserManagement } from "@/components/dashboard/user-management"
 
 export default async function UsersPage() {
   const supabase = await createClient()

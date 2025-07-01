@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
-import Campaign from "@/components/campaign"
+import Campaign from "@/components/dashboard/campaign"
 
 export default async function CampaignsPage() {
   const supabase = await createClient()

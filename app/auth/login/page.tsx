@@ -1,6 +1,6 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import LoginForm from "@/components/login-form"
+import LoginForm from "@/components/auth/login-form"
 
 export default async function LoginPage() {
   // If Supabase is not configured, show setup message directly

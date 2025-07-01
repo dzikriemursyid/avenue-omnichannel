@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
-import Conversation from "@/components/conversation"
+import Conversation from "@/components/dashboard/conversation"
 
 export default async function ConversationsPage() {
   const supabase = await createClient()

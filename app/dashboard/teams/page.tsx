@@ -3,7 +3,7 @@ import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { getTeamsForUser } from "@/lib/supabase/teams"
 import { redirect } from "next/navigation"
-import { TeamManagement } from "@/components/team-management"
+import { TeamManagement } from "@/components/dashboard/team-management"
 
 export default async function TeamsPage() {
   const supabase = await createClient()

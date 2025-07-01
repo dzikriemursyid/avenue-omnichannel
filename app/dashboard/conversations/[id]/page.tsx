@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
-import { ChatRoom } from "@/components/chat-room"
+import { ChatRoom } from "@/components/dashboard/chat-room"
 
 interface ConversationPageProps {
   params: {
