@@ -10,41 +10,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from "lucide-react"
-import { signInWithEmail } from "@/lib/actions/auth"
-import { toast } from "sonner"
+import { useLogin } from "@/hooks"
 import Image from "next/image"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+
+  // Using the new useLogin hook
+  const { execute: login, loading: isLoading, error } = useLogin()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError("")
 
     try {
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
-
-      const result = await signInWithEmail(formData)
-
-      if (!result.success) {
-        setError(result.message)
-        toast.error(result.message)
-      } else {
-        toast.success("Successfully signed in!")
-      }
+      await login({ email, password })
     } catch (error) {
-      const errorMessage = "An unexpected error occurred. Please try again."
-      setError(errorMessage)
-      toast.error(errorMessage)
-    } finally {
-      setIsLoading(false)
+      // Error is handled by the hook
     }
   }
 
@@ -70,7 +53,7 @@ export default function LoginForm() {
         {error && (
           <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-sm">{error}</AlertDescription>
+            <AlertDescription className="text-sm">{error.message}</AlertDescription>
           </Alert>
         )}
 

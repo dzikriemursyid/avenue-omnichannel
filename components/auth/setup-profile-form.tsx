@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { completeProfileSetup } from "@/lib/actions/auth"
+import { useSetupProfile } from "@/hooks"
 import type { User } from "@supabase/supabase-js"
 
 interface SetupProfileFormProps {
@@ -15,27 +14,24 @@ interface SetupProfileFormProps {
 }
 
 export function SetupProfileForm({ user }: SetupProfileFormProps) {
-    const [isPending, startTransition] = useTransition()
-    const { toast } = useToast()
+    const [formData, setFormData] = useState({
+        name: user.user_metadata?.full_name || "",
+        username: user.email?.split("@")[0] || "",
+        role: "agent" as const,
+        team_id: "",
+    })
 
-    const handleSubmit = async (formData: FormData) => {
-        startTransition(async () => {
-            const result = await completeProfileSetup(formData)
+    // Using the new useSetupProfile hook
+    const { execute: setupProfile, loading: isPending } = useSetupProfile()
 
-            if (result.success) {
-                toast({
-                    title: "Profile Setup Complete",
-                    description: "Welcome to the platform!",
-                })
-                // Redirect will be handled by the action
-            } else {
-                toast({
-                    title: "Error",
-                    description: result.message,
-                    variant: "destructive",
-                })
-            }
-        })
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        try {
+            await setupProfile(formData)
+        } catch (error) {
+            // Error is handled by the hook
+        }
     }
 
     return (
@@ -47,7 +43,7 @@ export function SetupProfileForm({ user }: SetupProfileFormProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form action={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
@@ -59,24 +55,45 @@ export function SetupProfileForm({ user }: SetupProfileFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="full_name">Full Name</Label>
+                        <Label htmlFor="name">Full Name</Label>
                         <Input
-                            id="full_name"
-                            name="full_name"
+                            id="name"
+                            name="name"
                             required
                             placeholder="Enter your full name"
-                            defaultValue={user.user_metadata?.full_name || ""}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number (Optional)</Label>
+                        <Label htmlFor="username">Username</Label>
                         <Input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            placeholder="+62 xxx xxxx xxxx"
+                            id="username"
+                            name="username"
+                            required
+                            placeholder="Choose a username"
+                            value={formData.username}
+                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                            value={formData.role}
+                            onValueChange={(value) => setFormData({ ...formData, role: value as any })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select your role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="agent">Agent</SelectItem>
+                                <SelectItem value="leader">Team Leader</SelectItem>
+                                <SelectItem value="general_manager">General Manager</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isPending}>
