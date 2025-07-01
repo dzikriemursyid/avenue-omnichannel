@@ -41,12 +41,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { UserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import Link from "next/link"
-import { signOut } from "@/lib/actions"
 import Image from "next/image"
-import { useActionState, useEffect, useTransition } from "react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { useLogout } from "@/hooks"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: UserProfile
@@ -114,9 +112,8 @@ const navigationItems = [
 ]
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  const [isPending, startTransition] = useTransition()
-  const router = useRouter()
   const { setOpenMobile, isMobile } = useSidebar()
+  const { execute: logout, loading: isPending } = useLogout()
 
   // Filter navigation items based on user permissions
   const allowedItems = navigationItems.filter((item) => hasPermission(user.role, item.permission))
@@ -133,35 +130,18 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     }
   }
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     // Close mobile sidebar if on mobile
     if (isMobile) {
       setOpenMobile(false)
     }
 
-    startTransition(async () => {
-      try {
-        const result = await signOut()
-
-        if (result && result.success) {
-          toast.success("Signed Out Successfully", {
-            description: result.message,
-          })
-          // Add a small delay to allow toast to be visible before redirect
-          setTimeout(() => {
-            router.push("/auth/login")
-          }, 1500)
-        } else if (result && !result.success) {
-          toast.error("Sign Out Failed", {
-            description: result.message,
-          })
-        }
-      } catch (error) {
-        toast.error("Sign Out Failed", {
-          description: "An unexpected error occurred while signing out.",
-        })
-      }
-    })
+    try {
+      await logout()
+      // Navigation is handled by the hook
+    } catch (error) {
+      // Error is handled by the hook
+    }
   }
 
   return (

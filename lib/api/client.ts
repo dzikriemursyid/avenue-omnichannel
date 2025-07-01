@@ -16,7 +16,8 @@ class ApiClient {
     const { params, ...fetchOptions } = options;
 
     // Build URL with query parameters
-    const url = new URL(endpoint, window.location.origin);
+    const fullEndpoint = this.baseUrl + endpoint;
+    const url = new URL(fullEndpoint, window.location.origin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, String(value));
@@ -32,7 +33,17 @@ class ApiClient {
         },
       });
 
-      const data = await response.json();
+      // First get the response as text to handle non-JSON responses
+      const responseText = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        const errorMessage = parseError instanceof Error ? parseError.message : "Unknown parse error";
+        console.error("Failed to parse JSON response:", responseText.substring(0, 200));
+        throw new Error(`Invalid JSON response: ${errorMessage}. Response preview: ${responseText.substring(0, 100)}...`);
+      }
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
