@@ -32,8 +32,14 @@ export const paginationSchema = z.object({
   order: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
-export const idParamSchema = z.object({
+export const idParamsSchema = z.object({
   id: z.string().uuid("Invalid ID format"),
+});
+
+export const searchSchema = z.object({
+  q: z.string().min(1).optional(),
+  category: z.string().optional(),
+  status: z.string().optional(),
 });
 
 // Helper to parse search params
