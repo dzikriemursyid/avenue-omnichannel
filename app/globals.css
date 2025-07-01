@@ -81,42 +81,51 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
+  }
+
+  /* Page backgrounds - all white except login */
+  .page-background {
+    @apply bg-white min-h-screen;
+  }
+
+  .login-background {
+    @apply bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen;
   }
 }
 
 /* Enhanced Toast Styling */
 @layer components {
   .toaster {
-    --toast-bg: theme(colors.white);
-    --toast-border: theme(colors.gray.200);
-    --toast-text: theme(colors.gray.900);
-    --toast-description: theme(colors.gray.600);
-    --toast-success-bg: theme(colors.green.50);
-    --toast-success-border: theme(colors.green.200);
-    --toast-success-text: theme(colors.green.900);
-    --toast-error-bg: theme(colors.red.50);
-    --toast-error-border: theme(colors.red.200);
-    --toast-error-text: theme(colors.red.900);
-    --toast-warning-bg: theme(colors.yellow.50);
-    --toast-warning-border: theme(colors.yellow.200);
-    --toast-warning-text: theme(colors.yellow.900);
+    --toast-bg: white;
+    --toast-border: gray 0.2;
+    --toast-text: gray 0.9;
+    --toast-description: gray 0.6;
+    --toast-success-bg: green 0.5;
+    --toast-success-border: green 0.2;
+    --toast-success-text: green 0.9;
+    --toast-error-bg: red 0.5;
+    --toast-error-border: red 0.2;
+    --toast-error-text: red 0.9;
+    --toast-warning-bg: yellow 0.5;
+    --toast-warning-border: yellow 0.2;
+    --toast-warning-text: yellow 0.9;
   }
 
   .dark .toaster {
-    --toast-bg: theme(colors.gray.800);
-    --toast-border: theme(colors.gray.700);
-    --toast-text: theme(colors.gray.100);
-    --toast-description: theme(colors.gray.300);
-    --toast-success-bg: theme(colors.green.900 / 0.2);
-    --toast-success-border: theme(colors.green.800);
-    --toast-success-text: theme(colors.green.100);
-    --toast-error-bg: theme(colors.red.900 / 0.2);
-    --toast-error-border: theme(colors.red.800);
-    --toast-error-text: theme(colors.red.100);
-    --toast-warning-bg: theme(colors.yellow.900 / 0.2);
-    --toast-warning-border: theme(colors.yellow.800);
-    --toast-warning-text: theme(colors.yellow.100);
+    --toast-bg: gray 0.8;
+    --toast-border: gray 0.7;
+    --toast-text: gray 0.1;
+    --toast-description: gray 0.3;
+    --toast-success-bg: green 0.9 / 0.2;
+    --toast-success-border: green 0.8;
+    --toast-success-text: green 0.1;
+    --toast-error-bg: red 0.9 / 0.2;
+    --toast-error-border: red 0.8;
+    --toast-error-text: red 0.1;
+    --toast-warning-bg: yellow 0.9 / 0.2;
+    --toast-warning-border: yellow 0.8;
+    --toast-warning-text: yellow 0.1;
   }
 
   /* Custom toast animations and improvements */
