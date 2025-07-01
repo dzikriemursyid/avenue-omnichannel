@@ -754,4 +754,4 @@ export function UserManagement({ users, teams, currentUser }: UserManagementProp
             )}
         </div>
     )
-} 
+}

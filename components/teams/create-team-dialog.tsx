@@ -75,4 +75,4 @@ export function CreateTeamDialog() {
             </DialogContent>
         </Dialog>
     );
-} 
+}
