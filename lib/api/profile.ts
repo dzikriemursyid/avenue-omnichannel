@@ -10,9 +10,8 @@ export interface UpdateProfileRequest {
   avatar_url?: string;
 }
 
-export interface ProfileResponse {
-  profile: Profile;
-}
+// API returns Profile object directly in data field
+export type ProfileResponse = Profile;
 
 export const profileApi = {
   get: async () => {

@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
-import { getUserProfile } from "@/lib/supabase/profiles"
 import { redirect } from "next/navigation"
-import { UserProfileView } from "@/components/dashboard/user-profile-view"
+import { ProfileOptimized } from "@/components/dashboard/profile-optimized"
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -13,10 +12,6 @@ export default async function ProfilePage() {
     redirect("/auth/login")
   }
 
-  const profile = await getUserProfile(user.id)
-  if (!profile) {
-    redirect("/")
-  }
-
-  return <UserProfileView profile={profile} />
+  // No need to fetch profile here since ProfileOptimized handles it via hooks
+  return <ProfileOptimized />
 }

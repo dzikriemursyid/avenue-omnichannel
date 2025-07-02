@@ -11,7 +11,7 @@ export function useProfile() {
   }, [execute]);
 
   return {
-    profile: data?.profile || null,
+    profile: data || null,
     error,
     loading,
     refetch: execute,
