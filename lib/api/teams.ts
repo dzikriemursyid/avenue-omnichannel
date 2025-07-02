@@ -1,8 +1,10 @@
 // Teams API Service
 import apiClient from "./client";
 import { Database } from "@/lib/database.types";
+import type { Team } from "@/lib/supabase/teams";
 
-type Team = Database["public"]["Tables"]["teams"]["Row"];
+// Basic database team type for create/update operations
+type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
 
 export interface CreateTeamRequest {
   name: string;
@@ -28,7 +30,7 @@ export interface TeamsListResponse {
 }
 
 export interface TeamResponse {
-  team: Team;
+  team: TeamRow;
 }
 
 export interface PaginationParams {

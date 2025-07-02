@@ -13,17 +13,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Users, UserPlus, UserMinus, Trash2, Crown } from "lucide-react";
-import { updateTeam, addTeamMember, removeTeamMember, deleteTeam, getAvailableUsersForTeam } from "@/lib/actions/team-management";
+import { Settings, Users, UserPlus, UserMinus, Trash2, Crown, ArrowDown } from "lucide-react";
+import { updateTeam, addTeamMember, removeTeamMember, deleteTeam, getAvailableUsersForTeam, demoteTeamLeader } from "@/lib/actions/team-management";
 import { toast } from "sonner";
 import type { Team } from "@/lib/supabase/teams";
 
 interface ManageTeamDialogProps {
     team: Team;
     canDelete: boolean;
+    onTeamUpdated?: () => void;
+    onTeamDeleted?: () => void;
+    onMemberAdded?: () => void;
+    onMemberRemoved?: () => void;
+    onError?: (error: string) => void;
 }
 
-export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
+export function ManageTeamDialog({
+    team,
+    canDelete,
+    onTeamUpdated,
+    onTeamDeleted,
+    onMemberAdded,
+    onMemberRemoved,
+    onError
+}: ManageTeamDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [availableUsers, setAvailableUsers] = useState<any[]>([]);
@@ -56,10 +69,19 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
         });
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to update team");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to update team";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Team updated successfully");
-            router.refresh();
+            if (onTeamUpdated) {
+                onTeamUpdated();
+            } else {
+                toast.success("Team updated successfully");
+                router.refresh();
+            }
         }
 
         setLoading(false);
@@ -78,12 +100,21 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
         });
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to add team member");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to add team member";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Member added successfully");
             setSelectedUserId("");
             loadAvailableUsers();
-            router.refresh();
+            if (onMemberAdded) {
+                onMemberAdded();
+            } else {
+                toast.success("Member added successfully");
+                router.refresh();
+            }
         }
 
         setLoading(false);
@@ -97,11 +128,20 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
         });
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to remove team member");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to remove team member";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Member removed successfully");
             loadAvailableUsers();
-            router.refresh();
+            if (onMemberRemoved) {
+                onMemberRemoved();
+            } else {
+                toast.success("Member removed successfully");
+                router.refresh();
+            }
         }
 
         setLoading(false);
@@ -115,10 +155,19 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
         });
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to update team leader");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to update team leader";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Team leader updated successfully");
-            router.refresh();
+            if (onTeamUpdated) {
+                onTeamUpdated();
+            } else {
+                toast.success("Team leader updated successfully");
+                router.refresh();
+            }
         }
 
         setLoading(false);
@@ -131,13 +180,43 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
         });
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to delete team");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to delete team";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Team deleted successfully");
             setOpen(false);
-            router.refresh();
+            if (onTeamDeleted) {
+                onTeamDeleted();
+            } else {
+                toast.success("Team deleted successfully");
+                router.refresh();
+            }
         }
 
+        setLoading(false);
+    }
+
+    async function handleDemoteLeader(userId: string) {
+        setLoading(true);
+        const result = await demoteTeamLeader({ teamId: team.id });
+        if (result.error) {
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to demote leader";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
+        } else {
+            if (onTeamUpdated) {
+                onTeamUpdated();
+            } else {
+                toast.success("Leader demoted to member");
+                router.refresh();
+            }
+        }
         setLoading(false);
     }
 
@@ -242,7 +321,17 @@ export function ManageTeamDialog({ team, canDelete }: ManageTeamDialogProps) {
                                                     <p className="text-xs text-muted-foreground">{member.email}</p>
                                                 </div>
                                                 {team.leader?.id === member.id && (
-                                                    <Crown className="h-4 w-4 text-yellow-500" />
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleDemoteLeader(member.id)}
+                                                            disabled={loading}
+                                                            title="Demote to Member"
+                                                        >
+                                                            <Crown className="h-4 w-4 text-yellow-500 hover:text-red-600" />
+                                                        </Button>
+                                                    </>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2">

@@ -12,7 +12,12 @@ import { Plus } from "lucide-react";
 import { createTeam } from "@/lib/actions/team-management";
 import { toast } from "sonner";
 
-export function CreateTeamDialog() {
+interface CreateTeamDialogProps {
+    onSuccess?: () => void;
+    onError?: (error: string) => void;
+}
+
+export function CreateTeamDialog({ onSuccess, onError }: CreateTeamDialogProps = {}) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -25,11 +30,20 @@ export function CreateTeamDialog() {
         const result = await createTeam(formData);
 
         if (result.error) {
-            toast.error(typeof result.error === "string" ? result.error : "Failed to create team");
+            const errorMessage = typeof result.error === "string" ? result.error : "Failed to create team";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         } else {
-            toast.success("Team created successfully");
             setOpen(false);
-            router.refresh();
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                toast.success("Team created successfully");
+                router.refresh();
+            }
         }
 
         setLoading(false);

@@ -35,6 +35,10 @@ const deleteTeamSchema = z.object({
   teamId: z.string().uuid(),
 });
 
+const demoteLeaderSchema = z.object({
+  teamId: z.string().uuid(),
+});
+
 // Create a new team
 export async function createTeam(formData: FormData) {
   const supabase = await createClient();
@@ -314,4 +318,39 @@ export async function getAvailableUsersForTeam(teamId?: string) {
   }
 
   return { users: users || [] };
+}
+
+export async function demoteTeamLeader(values: z.infer<typeof demoteLeaderSchema>) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Not authenticated" };
+  }
+
+  const profile = await getUserProfile(user.id);
+
+  if (!profile) {
+    return { error: "Profile not found" };
+  }
+  // Hanya admin, GM, atau leader tim itu sendiri yang boleh menurunkan leader
+  const { data: team } = await supabase.from("teams").select("leader_id").eq("id", values.teamId).single();
+  const canDemote = ["admin", "general_manager"].includes(profile.role) || (profile.role === "leader" && team?.leader_id === user.id);
+  if (!canDemote) {
+    return { error: "You don't have permission to demote the leader of this team" };
+  }
+
+  // Set leader_id ke null
+  const { error } = await supabase.from("teams").update({ leader_id: null }).eq("id", values.teamId);
+
+  if (error) {
+    console.error("Error demoting team leader:", error);
+    return { error: "Failed to demote team leader" };
+  }
+
+  revalidatePath("/dashboard/teams");
+  return { success: true };
 }
