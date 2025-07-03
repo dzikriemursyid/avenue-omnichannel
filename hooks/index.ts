@@ -13,7 +13,7 @@ export { useProfile, useUpdateProfile } from "./use-profile";
 export { useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser } from "./use-users";
 
 // Team management hooks
-export { useTeams, useTeam, useCreateTeam, useUpdateTeam, useDeleteTeam } from "./use-teams";
+export { useTeams, useTeam, useCreateTeam, useUpdateTeam, useDeleteTeam, useDemoteTeamLeader } from "./use-teams";
 
 // Performance optimization hooks
 export { useDebounce, useDebouncedCallback } from "./use-debounce";

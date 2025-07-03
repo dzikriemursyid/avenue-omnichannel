@@ -1,17 +1,21 @@
-// Team Management API Route
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createTeam, updateTeam, deleteTeam } from "@/lib/actions/team-management";
+import { createClient } from "@/lib/supabase/server";
 import { getTeamsForUser } from "@/lib/supabase/teams";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
 import { handleApiError } from "@/lib/utils/api-error";
 import { validateRequest, paginationSchema } from "@/lib/utils/api-validation";
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware/api-auth";
+import { revalidatePath } from "next/cache";
 
 // Create team request schema
 const createTeamSchema = z.object({
-  name: z.string().min(1, "Team name is required"),
-  description: z.string().optional(),
+  name: z.string().min(1, "Team name is required").max(100, "Team name must be less than 100 characters").trim(),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
   is_active: z.boolean().default(true),
 });
 
@@ -65,38 +69,71 @@ export async function GET(request: NextRequest) {
   })(request);
 }
 
-// POST /api/dashboard/teams
+// POST /api/dashboard/teams - DIRECT DATABASE APPROACH
 export async function POST(request: NextRequest) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
+      console.log("=== CREATE TEAM - DIRECT DB ===");
+      console.log("1. User:", req.user?.id, req.user?.profile.role);
+
       // Check permissions - only admin and GM can create teams
       const userRole = req.user?.profile.role;
       if (!["admin", "general_manager"].includes(userRole!)) {
+        console.log("2. Permission denied for role:", userRole);
         return NextResponse.json(errorResponse("Insufficient permissions"), { status: 403 });
       }
 
-      // Parse and validate request body
+      // Parse request body
       const body = await req.json();
+      console.log("3. Received request body:", body);
+
       const validatedData = await validateRequest(body, createTeamSchema);
+      console.log("4. Validated data:", validatedData);
 
-      // Create FormData for compatibility with existing action
-      const formData = new FormData();
-      formData.append("name", validatedData.name);
-      if (validatedData.description) {
-        formData.append("description", validatedData.description);
+      // Create Supabase client using the auth from middleware
+      const supabase = await createClient();
+
+      // Insert team directly into database
+      console.log("5. Inserting team into database...");
+      const { data: newTeam, error: dbError } = await supabase
+        .from("teams")
+        .insert({
+          name: validatedData.name,
+          description: validatedData.description || null,
+          is_active: validatedData.is_active,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error("6. Database error:", dbError);
+
+        // Handle specific database errors
+        if (dbError.code === "23505") {
+          // Unique constraint violation
+          return NextResponse.json(errorResponse("Team name already exists"), { status: 400 });
+        }
+
+        return NextResponse.json(errorResponse("Failed to create team in database"), { status: 500 });
       }
-      formData.append("is_active", (validatedData.is_active ?? true).toString());
 
-      // Call existing team creation action
-      const result = await createTeam(formData);
+      console.log("7. Team created successfully:", newTeam);
 
-      if (result.error) {
-        const errorMessage = typeof result.error === "string" ? result.error : "Failed to create team";
-        return NextResponse.json(errorResponse(errorMessage), { status: 400 });
+      // Revalidate the teams page cache
+      try {
+        revalidatePath("/dashboard/teams");
+        console.log("8. Cache revalidated");
+      } catch (revalidateError) {
+        console.warn("9. Cache revalidation failed:", revalidateError);
+        // Don't fail the request if revalidation fails
       }
 
-      return NextResponse.json(successResponse("Team created successfully", result.data), { status: 201 });
+      // Return success response
+      return NextResponse.json(successResponse("Team created successfully", { team: newTeam }), { status: 201 });
     } catch (error) {
+      console.error("10. Unexpected error:", error);
       return handleApiError(error);
     }
   })(request);
