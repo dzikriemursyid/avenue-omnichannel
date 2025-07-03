@@ -1,6 +1,6 @@
 // Complete Team Management Hooks
 // File: hooks/use-teams.ts (replace existing)
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "./use-api";
 import { teamsApi, PaginationParams } from "@/lib/api";
 
@@ -93,7 +93,7 @@ export function useRemoveTeamMember() {
   });
 }
 
-export function useAvailableUsers(teamId: string) {
+export function useAvailableUsers(teamId: string | null) {
   const { data, error, loading, execute } = useApi(teamsApi.getAvailableUsers);
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export function useAvailableUsers(teamId: string) {
     users: data?.users || [],
     error,
     loading,
-    refetch: () => execute(teamId),
+    refetch: () => (teamId ? execute(teamId) : Promise.resolve()),
   };
 }
 
@@ -123,4 +123,78 @@ export function useDemoteTeamLeader() {
     showSuccessToast: true,
     successMessage: "Leader demoted successfully!",
   });
+}
+
+// Bulk add team members hook
+export function useBulkAddTeamMembers() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const execute = async (teamId: string, userIds: string[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/dashboard/teams/${teamId}/members/bulk`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add team members");
+      }
+
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to add team members";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { execute, loading, error };
+}
+
+// Bulk remove team members hook
+export function useBulkRemoveTeamMembers() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const execute = async (teamId: string, userIds: string[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/dashboard/teams/${teamId}/members/bulk`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove team members");
+      }
+
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to remove team members";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { execute, loading, error };
 }

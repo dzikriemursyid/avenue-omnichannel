@@ -17,24 +17,25 @@ const updateUserSchema = z.object({
 });
 
 // GET /api/dashboard/users/[id]
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
       // Validate ID parameter
-      const validatedParams = await validateRequest(params, idParamsSchema);
-      const userId = validatedParams.id;
+      const { id: userId } = await params;
+      const validatedParams = await validateRequest({ id: userId }, idParamsSchema);
+      const validatedUserId = validatedParams.id;
 
       // Check permissions
       const currentUserRole = req.user?.profile.role;
       const currentUserId = req.user?.id;
 
       // Admin can view anyone, others can only view themselves
-      if (currentUserRole !== "admin" && currentUserId !== userId) {
+      if (currentUserRole !== "admin" && currentUserId !== validatedUserId) {
         return NextResponse.json(errorResponse("Insufficient permissions"), { status: 403 });
       }
 
       // Get user profile
-      const userProfile = await getUserProfile(userId);
+      const userProfile = await getUserProfile(validatedUserId);
 
       if (!userProfile) {
         return NextResponse.json(errorResponse("User not found"), { status: 404 });
@@ -48,12 +49,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/dashboard/users/[id]
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
       // Validate ID parameter
-      const validatedParams = await validateRequest(params, idParamsSchema);
-      const userId = validatedParams.id;
+      const { id: userId } = await params;
+      const validatedParams = await validateRequest({ id: userId }, idParamsSchema);
+      const validatedUserId = validatedParams.id;
 
       // Check permissions - only admin and GM can update users
       const currentUserRole = req.user?.profile.role;
@@ -67,7 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
       // Create FormData for compatibility with existing action
       const formData = new FormData();
-      formData.append("user_id", userId);
+      formData.append("user_id", validatedUserId);
       formData.append("full_name", validatedData.full_name);
       formData.append("role", validatedData.role);
       if (validatedData.team_id) {
@@ -85,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
 
       // Get updated user profile
-      const updatedProfile = await getUserProfile(userId);
+      const updatedProfile = await getUserProfile(validatedUserId);
 
       return NextResponse.json(successResponse("User updated successfully", updatedProfile), { status: 200 });
     } catch (error) {
@@ -95,12 +97,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/dashboard/users/[id]
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
       // Validate ID parameter
-      const validatedParams = await validateRequest(params, idParamsSchema);
-      const userId = validatedParams.id;
+      const { id: userId } = await params;
+      const validatedParams = await validateRequest({ id: userId }, idParamsSchema);
+      const validatedUserId = validatedParams.id;
 
       // Check permissions - only admin can delete users
       const currentUserRole = req.user?.profile.role;
@@ -109,12 +112,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       }
 
       // Prevent self-deletion
-      if (req.user?.id === userId) {
+      if (req.user?.id === validatedUserId) {
         return NextResponse.json(errorResponse("Cannot delete your own account"), { status: 400 });
       }
 
       // Call existing user deletion action
-      const result = await deleteUser(userId);
+      const result = await deleteUser(validatedUserId);
 
       if (!result.success) {
         return NextResponse.json(errorResponse(result.message, result.errors), { status: 400 });

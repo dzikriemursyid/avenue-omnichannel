@@ -8,18 +8,12 @@ import { withAuth, type AuthenticatedRequest } from "@/lib/middleware/api-auth";
 import { revalidatePath } from "next/cache";
 
 // DELETE /api/dashboard/teams/[id]/members/[userId] - Remove team member
-export async function DELETE(request: NextRequest, { params }: { params: { id: string; userId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      const teamId = params.id;
-      const userIdToRemove = params.userId;
+      const { id: teamId, userId: userIdToRemove } = await params;
       const userRole = req.user?.profile.role;
       const currentUserId = req.user?.id;
-
-      console.log("=== REMOVE TEAM MEMBER ===");
-      console.log("1. Team ID:", teamId);
-      console.log("2. User to remove:", userIdToRemove);
-      console.log("3. Current user role:", userRole);
 
       const supabase = await createClient();
 
@@ -53,11 +47,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       const { error: updateError } = await supabase.from("profiles").update({ team_id: null }).eq("id", userIdToRemove);
 
       if (updateError) {
-        console.error("4. Database error:", updateError);
+        console.error("Database error removing team member:", updateError);
         return NextResponse.json(errorResponse("Failed to remove team member"), { status: 500 });
       }
-
-      console.log("5. Member removed successfully");
 
       // Revalidate cache
       revalidatePath("/dashboard/teams");

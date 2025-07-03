@@ -15,22 +15,16 @@ const updateLeaderSchema = z.object({
 });
 
 // PUT /api/dashboard/teams/[id]/leader - Update team leader
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      const teamId = params.id;
+      const { id: teamId } = await params;
       const userRole = req.user?.profile.role;
       const currentUserId = req.user?.id;
-
-      console.log("=== UPDATE TEAM LEADER ===");
-      console.log("1. Team ID:", teamId);
-      console.log("2. User role:", userRole);
 
       // Parse and validate request body
       const body = await req.json();
       const validatedData = await validateRequest(body, updateLeaderSchema);
-
-      console.log("3. New leader ID:", validatedData.leader_id);
 
       const supabase = await createClient();
 
@@ -66,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           const { error: roleUpdateError } = await supabase.from("profiles").update({ role: "leader" }).eq("id", validatedData.leader_id);
 
           if (roleUpdateError) {
-            console.error("4. Role update error:", roleUpdateError);
+            console.error("Role update error:", roleUpdateError);
             return NextResponse.json(errorResponse("Failed to update user role"), { status: 500 });
           }
         }
@@ -77,7 +71,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const { error: demoteError } = await supabase.from("profiles").update({ role: "agent" }).eq("id", team.leader_id);
 
         if (demoteError) {
-          console.error("5. Demote error:", demoteError);
+          console.error("Demote previous leader error:", demoteError);
           // Don't fail the request, just log the error
         }
       }
@@ -92,11 +86,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         .eq("id", teamId);
 
       if (updateError) {
-        console.error("6. Team update error:", updateError);
+        console.error("Database error updating team leader:", updateError);
         return NextResponse.json(errorResponse("Failed to update team leader"), { status: 500 });
       }
-
-      console.log("7. Team leader updated successfully");
 
       // Revalidate cache
       revalidatePath("/dashboard/teams");
@@ -112,15 +104,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/dashboard/teams/[id]/leader - Remove team leader (demote)
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      const teamId = params.id;
+      const { id: teamId } = await params;
       const userRole = req.user?.profile.role;
       const currentUserId = req.user?.id;
-
-      console.log("=== DEMOTE TEAM LEADER ===");
-      console.log("1. Team ID:", teamId);
 
       const supabase = await createClient();
 
@@ -146,7 +135,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       const { error: demoteError } = await supabase.from("profiles").update({ role: "agent" }).eq("id", team.leader_id);
 
       if (demoteError) {
-        console.error("2. Demote error:", demoteError);
+        console.error("Demote leader error:", demoteError);
         return NextResponse.json(errorResponse("Failed to demote leader"), { status: 500 });
       }
 
@@ -160,11 +149,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         .eq("id", teamId);
 
       if (updateError) {
-        console.error("3. Team update error:", updateError);
+        console.error("Team update error:", updateError);
         return NextResponse.json(errorResponse("Failed to update team"), { status: 500 });
       }
-
-      console.log("4. Leader demoted successfully");
 
       // Revalidate cache
       revalidatePath("/dashboard/teams");

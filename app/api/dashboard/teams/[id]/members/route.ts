@@ -15,10 +15,10 @@ const addMemberSchema = z.object({
 });
 
 // GET /api/dashboard/teams/[id]/members - Get team members
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      const teamId = params.id;
+      const { id: teamId } = await params;
       const userRole = req.user?.profile.role;
 
       // Check permissions
@@ -69,22 +69,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // POST /api/dashboard/teams/[id]/members - Add team member
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      const teamId = params.id;
+      const { id: teamId } = await params;
       const userRole = req.user?.profile.role;
       const userId = req.user?.id;
-
-      console.log("=== ADD TEAM MEMBER ===");
-      console.log("1. Team ID:", teamId);
-      console.log("2. User role:", userRole);
 
       // Parse and validate request body
       const body = await req.json();
       const validatedData = await validateRequest(body, addMemberSchema);
-
-      console.log("3. Adding user ID:", validatedData.userId);
 
       const supabase = await createClient();
 
@@ -113,11 +107,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       const { error: updateError } = await supabase.from("profiles").update({ team_id: teamId }).eq("id", validatedData.userId);
 
       if (updateError) {
-        console.error("4. Database error:", updateError);
+        console.error("Database error adding team member:", updateError);
         return NextResponse.json(errorResponse("Failed to add team member"), { status: 500 });
       }
-
-      console.log("5. Member added successfully");
 
       // Revalidate cache
       revalidatePath("/dashboard/teams");

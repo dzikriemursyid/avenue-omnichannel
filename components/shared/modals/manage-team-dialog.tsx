@@ -13,8 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Users, UserPlus, UserMinus, Trash2, Crown, ArrowDown } from "lucide-react";
-import { updateTeam, addTeamMember, removeTeamMember, deleteTeam, getAvailableUsersForTeam, demoteTeamLeader } from "@/lib/actions/team-management";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Settings, Users, UserPlus, UserMinus, Trash2, Crown, ArrowDown, CheckSquare, Square, X } from "lucide-react";
+import {
+    useUpdateTeam,
+    useAddTeamMember,
+    useRemoveTeamMember,
+    useDeleteTeam,
+    useAvailableUsers,
+    useDemoteTeamLeader,
+    useBulkAddTeamMembers,
+    useBulkRemoveTeamMembers
+} from "@/hooks";
 import { toast } from "sonner";
 import type { Team } from "@/lib/supabase/teams";
 
@@ -38,53 +48,117 @@ export function ManageTeamDialog({
     onError
 }: ManageTeamDialogProps) {
     const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [availableUsers, setAvailableUsers] = useState<any[]>([]);
     const [selectedUserId, setSelectedUserId] = useState("");
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+    const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
     const router = useRouter();
+
+    // API Hooks
+    const updateTeamHook = useUpdateTeam();
+    const addMemberHook = useAddTeamMember();
+    const removeMemberHook = useRemoveTeamMember();
+    const deleteTeamHook = useDeleteTeam();
+    const demoteLeaderHook = useDemoteTeamLeader();
+    const bulkAddMembersHook = useBulkAddTeamMembers();
+    const bulkRemoveMembersHook = useBulkRemoveTeamMembers();
+
+    // Available users hook - only fetch when dialog is open
+    const [shouldFetchUsers, setShouldFetchUsers] = useState(false);
+    const availableUsersHook = useAvailableUsers(shouldFetchUsers ? team.id : null);
+
+    // Loading state - combine all loading states
+    const loading = updateTeamHook.loading || addMemberHook.loading || removeMemberHook.loading ||
+        deleteTeamHook.loading || demoteLeaderHook.loading || availableUsersHook.loading ||
+        bulkAddMembersHook.loading || bulkRemoveMembersHook.loading;
 
     useEffect(() => {
         if (open) {
-            loadAvailableUsers();
+            // Only fetch available users when dialog opens
+            setShouldFetchUsers(true);
+        } else {
+            // Reset when dialog closes
+            setShouldFetchUsers(false);
+            setSelectedUserIds([]);
+            setSelectedMemberIds([]);
         }
     }, [open]);
 
-    async function loadAvailableUsers() {
-        const result = await getAvailableUsersForTeam(team.id);
-        if (!result.error) {
-            setAvailableUsers(result.users);
+    // Handle bulk user selection
+    const handleUserSelection = (userId: string, checked: boolean) => {
+        if (checked) {
+            setSelectedUserIds(prev => [...prev, userId]);
+        } else {
+            setSelectedUserIds(prev => prev.filter(id => id !== userId));
         }
-    }
+    };
+
+    // Handle bulk member selection
+    const handleMemberSelection = (memberId: string, checked: boolean) => {
+        if (checked) {
+            setSelectedMemberIds(prev => [...prev, memberId]);
+        } else {
+            setSelectedMemberIds(prev => prev.filter(id => id !== memberId));
+        }
+    };
+
+    // Handle select all available users
+    const handleSelectAllUsers = (checked: boolean) => {
+        if (checked) {
+            const allUserIds = availableUsersHook.users
+                .filter(user => !user.team_id || user.team_id !== team.id)
+                .map(user => user.id);
+            setSelectedUserIds(allUserIds);
+        } else {
+            setSelectedUserIds([]);
+        }
+    };
+
+    // Handle select all members
+    const handleSelectAllMembers = (checked: boolean) => {
+        if (checked) {
+            const allMemberIds = team.members?.map(member => member.id) || [];
+            setSelectedMemberIds(allMemberIds);
+        } else {
+            setSelectedMemberIds([]);
+        }
+    };
+
+    // Handle clear all selected users
+    const handleClearSelectedUsers = () => {
+        setSelectedUserIds([]);
+    };
+
+    // Handle clear all selected members
+    const handleClearSelectedMembers = () => {
+        setSelectedMemberIds([]);
+    };
 
     async function handleUpdateTeam(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setLoading(true);
 
         const formData = new FormData(event.currentTarget);
-        const result = await updateTeam({
-            teamId: team.id,
+        const updateData = {
             name: formData.get("name") as string,
             description: formData.get("description") as string,
             is_active: formData.get("is_active") === "on",
-        });
+        };
 
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to update team";
+        try {
+            await updateTeamHook.execute(team.id, updateData);
+
+            if (onTeamUpdated) {
+                onTeamUpdated();
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to update team";
             if (onError) {
                 onError(errorMessage);
             } else {
                 toast.error(errorMessage);
             }
-        } else {
-            if (onTeamUpdated) {
-                onTeamUpdated();
-            } else {
-                toast.success("Team updated successfully");
-                router.refresh();
-            }
         }
-
-        setLoading(false);
     }
 
     async function handleAddMember() {
@@ -93,132 +167,172 @@ export function ManageTeamDialog({
             return;
         }
 
-        setLoading(true);
-        const result = await addTeamMember({
-            teamId: team.id,
-            userId: selectedUserId,
-        });
+        try {
+            await addMemberHook.execute(team.id, { userId: selectedUserId });
 
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to add team member";
-            if (onError) {
-                onError(errorMessage);
-            } else {
-                toast.error(errorMessage);
-            }
-        } else {
             setSelectedUserId("");
-            loadAvailableUsers();
+            // Refresh available users after adding member
+            if (shouldFetchUsers) {
+                availableUsersHook.refetch();
+            }
             if (onMemberAdded) {
                 onMemberAdded();
             } else {
-                toast.success("Member added successfully");
                 router.refresh();
             }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to add team member";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
+        }
+    }
+
+    async function handleBulkAddMembers() {
+        if (selectedUserIds.length === 0) {
+            toast.error("Please select users to add");
+            return;
         }
 
-        setLoading(false);
+        try {
+            await bulkAddMembersHook.execute(team.id, selectedUserIds);
+
+            setSelectedUserIds([]);
+            // Refresh available users after adding members
+            if (shouldFetchUsers) {
+                availableUsersHook.refetch();
+            }
+            if (onMemberAdded) {
+                onMemberAdded();
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to add team members";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
+        }
     }
 
     async function handleRemoveMember(userId: string) {
-        setLoading(true);
-        const result = await removeTeamMember({
-            teamId: team.id,
-            userId,
-        });
+        try {
+            await removeMemberHook.execute(team.id, userId);
 
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to remove team member";
-            if (onError) {
-                onError(errorMessage);
-            } else {
-                toast.error(errorMessage);
+            // Refresh available users after removing member
+            if (shouldFetchUsers) {
+                availableUsersHook.refetch();
             }
-        } else {
-            loadAvailableUsers();
             if (onMemberRemoved) {
                 onMemberRemoved();
             } else {
-                toast.success("Member removed successfully");
                 router.refresh();
             }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to remove team member";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
+        }
+    }
+
+    async function handleBulkRemoveMembers() {
+        if (selectedMemberIds.length === 0) {
+            toast.error("Please select members to remove");
+            return;
         }
 
-        setLoading(false);
+        try {
+            await bulkRemoveMembersHook.execute(team.id, selectedMemberIds);
+
+            setSelectedMemberIds([]);
+            // Refresh available users after removing members
+            if (shouldFetchUsers) {
+                availableUsersHook.refetch();
+            }
+            if (onMemberRemoved) {
+                onMemberRemoved();
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to remove team members";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
+        }
     }
 
     async function handleMakeLeader(userId: string) {
-        setLoading(true);
-        const result = await updateTeam({
-            teamId: team.id,
-            leader_id: userId,
-        });
+        try {
+            await updateTeamHook.execute(team.id, { leader_id: userId });
 
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to update team leader";
-            if (onError) {
-                onError(errorMessage);
-            } else {
-                toast.error(errorMessage);
-            }
-        } else {
             if (onTeamUpdated) {
                 onTeamUpdated();
             } else {
-                toast.success("Team leader updated successfully");
                 router.refresh();
             }
-        }
-
-        setLoading(false);
-    }
-
-    async function handleDeleteTeam() {
-        setLoading(true);
-        const result = await deleteTeam({
-            teamId: team.id,
-        });
-
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to delete team";
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to update team leader";
             if (onError) {
                 onError(errorMessage);
             } else {
                 toast.error(errorMessage);
             }
-        } else {
+        }
+    }
+
+    async function handleDeleteTeam() {
+        try {
+            await deleteTeamHook.execute(team.id);
+
             setOpen(false);
             if (onTeamDeleted) {
                 onTeamDeleted();
             } else {
-                toast.success("Team deleted successfully");
                 router.refresh();
             }
-        }
-
-        setLoading(false);
-    }
-
-    async function handleDemoteLeader(userId: string) {
-        setLoading(true);
-        const result = await demoteTeamLeader({ teamId: team.id });
-        if (result.error) {
-            const errorMessage = typeof result.error === "string" ? result.error : "Failed to demote leader";
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to delete team";
             if (onError) {
                 onError(errorMessage);
             } else {
                 toast.error(errorMessage);
             }
-        } else {
+        }
+    }
+
+    async function handleDemoteLeader(userId: string) {
+        try {
+            await demoteLeaderHook.execute(team.id, userId);
+
             if (onTeamUpdated) {
                 onTeamUpdated();
             } else {
-                toast.success("Leader demoted to member");
                 router.refresh();
             }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to demote team leader";
+            if (onError) {
+                onError(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         }
-        setLoading(false);
     }
+
+    // Get available users (not in this team)
+    const availableUsers = availableUsersHook.users.filter(user => !user.team_id || user.team_id !== team.id);
+    const allAvailableUserIds = availableUsers.map(user => user.id);
+    const allMemberIds = team.members?.map(member => member.id) || [];
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -279,23 +393,23 @@ export function ManageTeamDialog({
                     </TabsContent>
 
                     <TabsContent value="members" className="space-y-4">
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {/* Add Member Section */}
-                            <div className="space-y-2">
-                                <Label>Add New Member</Label>
+                            <div className="space-y-4">
+                                <Label>Add New Members</Label>
+
+                                {/* Single Add Member */}
                                 <div className="flex gap-2">
                                     <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                                         <SelectTrigger className="flex-1">
                                             <SelectValue placeholder="Select a user to add" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {availableUsers
-                                                .filter(user => !user.team_id || user.team_id !== team.id)
-                                                .map(user => (
-                                                    <SelectItem key={user.id} value={user.id}>
-                                                        {user.full_name} ({user.email})
-                                                    </SelectItem>
-                                                ))}
+                                            {availableUsers.map(user => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.full_name} ({user.email})
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <Button onClick={handleAddMember} disabled={loading || !selectedUserId}>
@@ -305,69 +419,106 @@ export function ManageTeamDialog({
                             </div>
 
                             {/* Current Members */}
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 <Label>Current Members</Label>
-                                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                                    {team.members?.map((member) => (
-                                        <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarFallback>
+
+                                <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
+                                    <div className="flex flex-wrap gap-2">
+                                        {team.members && team.members.length > 0 ? team.members.map((member) => (
+                                            <Badge
+                                                key={member.id}
+                                                variant="secondary"
+                                                className="flex items-center gap-1"
+                                            >
+                                                <Avatar className="h-3 w-3">
+                                                    <AvatarFallback className="text-xs">
                                                         {member.full_name?.split(" ").map(n => n[0]).join("")}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <div>
-                                                    <p className="text-sm font-medium">{member.full_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{member.email}</p>
-                                                </div>
+                                                {member.full_name}
                                                 {team.leader?.id === member.id && (
-                                                    <Badge variant="secondary" className="ml-2">
-                                                        <Crown className="h-3 w-3 mr-1" />
-                                                        Leader
-                                                    </Badge>
+                                                    <Crown className="h-3 w-3 text-yellow-500" />
                                                 )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="outline">{member.role}</Badge>
                                                 {team.leader?.id !== member.id && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleMakeLeader(member.id)}
-                                                            disabled={loading}
-                                                            title="Make Leader"
-                                                        >
-                                                            <Crown className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveMember(member.id)}
-                                                            disabled={loading}
-                                                            title="Remove Member"
-                                                        >
-                                                            <UserMinus className="h-4 w-4" />
-                                                        </Button>
-                                                    </>
+                                                    <X
+                                                        className="h-3 w-3 cursor-pointer"
+                                                        onClick={() => handleRemoveMember(member.id)}
+                                                    />
                                                 )}
-                                                {team.leader?.id === member.id && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleDemoteLeader(member.id)}
-                                                        disabled={loading}
-                                                        title="Demote to Member"
-                                                    >
-                                                        <ArrowDown className="h-4 w-4" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )) || (
-                                            <p className="text-sm text-muted-foreground">No members in this team</p>
+                                            </Badge>
+                                        )) : (
+                                            <p className="text-sm text-muted-foreground text-center py-4">
+                                                No members in this team
+                                            </p>
                                         )}
+                                    </div>
                                 </div>
+
+                                {/* Individual Member Actions */}
+                                {team.members && team.members.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium">Member Actions</Label>
+                                        <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                                            {team.members.map((member) => (
+                                                <div key={member.id} className="flex items-center justify-between p-2 rounded-lg border">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-6 w-6">
+                                                            <AvatarFallback className="text-xs">
+                                                                {member.full_name?.split(" ").map(n => n[0]).join("")}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="text-sm font-medium">{member.full_name}</p>
+                                                            <p className="text-xs text-muted-foreground">{member.email}</p>
+                                                        </div>
+                                                        {team.leader?.id === member.id && (
+                                                            <Badge variant="secondary" className="ml-2">
+                                                                <Crown className="h-3 w-3 mr-1 text-yellow-500" />
+                                                                Team Leader
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Badge variant="outline" className="text-xs">{member.role}</Badge>
+                                                        {team.leader?.id !== member.id && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleMakeLeader(member.id)}
+                                                                    disabled={loading}
+                                                                    title="Make Leader"
+                                                                >
+                                                                    <Crown className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleRemoveMember(member.id)}
+                                                                    disabled={loading}
+                                                                    title="Remove Member"
+                                                                >
+                                                                    <UserMinus className="h-4 w-4" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        {team.leader?.id === member.id && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleDemoteLeader(member.id)}
+                                                                disabled={loading}
+                                                                title="Demote to Member"
+                                                            >
+                                                                <ArrowDown className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </TabsContent>

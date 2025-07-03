@@ -31,6 +31,10 @@ export {
   // Leader management operations
   useUpdateTeamLeader,
   useDemoteTeamLeader,
+
+  // Bulk operations
+  useBulkAddTeamMembers,
+  useBulkRemoveTeamMembers,
 } from "./use-teams";
 
 // Performance optimization hooks

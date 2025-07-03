@@ -73,28 +73,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withAuth(async (req: AuthenticatedRequest) => {
     try {
-      console.log("=== CREATE TEAM - DIRECT DB ===");
-      console.log("1. User:", req.user?.id, req.user?.profile.role);
-
       // Check permissions - only admin and GM can create teams
       const userRole = req.user?.profile.role;
       if (!["admin", "general_manager"].includes(userRole!)) {
-        console.log("2. Permission denied for role:", userRole);
         return NextResponse.json(errorResponse("Insufficient permissions"), { status: 403 });
       }
 
       // Parse request body
       const body = await req.json();
-      console.log("3. Received request body:", body);
-
       const validatedData = await validateRequest(body, createTeamSchema);
-      console.log("4. Validated data:", validatedData);
 
       // Create Supabase client using the auth from middleware
       const supabase = await createClient();
 
       // Insert team directly into database
-      console.log("5. Inserting team into database...");
       const { data: newTeam, error: dbError } = await supabase
         .from("teams")
         .insert({
@@ -108,7 +100,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (dbError) {
-        console.error("6. Database error:", dbError);
+        console.error("Database error creating team:", dbError);
 
         // Handle specific database errors
         if (dbError.code === "23505") {
@@ -119,21 +111,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(errorResponse("Failed to create team in database"), { status: 500 });
       }
 
-      console.log("7. Team created successfully:", newTeam);
-
       // Revalidate the teams page cache
       try {
         revalidatePath("/dashboard/teams");
-        console.log("8. Cache revalidated");
       } catch (revalidateError) {
-        console.warn("9. Cache revalidation failed:", revalidateError);
+        console.warn("Cache revalidation failed:", revalidateError);
         // Don't fail the request if revalidation fails
       }
 
       // Return success response
       return NextResponse.json(successResponse("Team created successfully", { team: newTeam }), { status: 201 });
     } catch (error) {
-      console.error("10. Unexpected error:", error);
+      console.error("Unexpected error creating team:", error);
       return handleApiError(error);
     }
   })(request);
