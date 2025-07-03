@@ -308,12 +308,12 @@ export function ManageTeamDialog({
                             <div className="space-y-2">
                                 <Label>Current Members</Label>
                                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                                    {team.members.map((member) => (
+                                    {team.members?.map((member) => (
                                         <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-8 w-8">
                                                     <AvatarFallback>
-                                                        {member.full_name.split(" ").map(n => n[0]).join("")}
+                                                        {member.full_name?.split(" ").map(n => n[0]).join("")}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
@@ -321,17 +321,10 @@ export function ManageTeamDialog({
                                                     <p className="text-xs text-muted-foreground">{member.email}</p>
                                                 </div>
                                                 {team.leader?.id === member.id && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleDemoteLeader(member.id)}
-                                                            disabled={loading}
-                                                            title="Demote to Member"
-                                                        >
-                                                            <Crown className="h-4 w-4 text-yellow-500 hover:text-red-600" />
-                                                        </Button>
-                                                    </>
+                                                    <Badge variant="secondary" className="ml-2">
+                                                        <Crown className="h-3 w-3 mr-1" />
+                                                        Leader
+                                                    </Badge>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -343,6 +336,7 @@ export function ManageTeamDialog({
                                                             size="sm"
                                                             onClick={() => handleMakeLeader(member.id)}
                                                             disabled={loading}
+                                                            title="Make Leader"
                                                         >
                                                             <Crown className="h-4 w-4" />
                                                         </Button>
@@ -351,14 +345,28 @@ export function ManageTeamDialog({
                                                             size="sm"
                                                             onClick={() => handleRemoveMember(member.id)}
                                                             disabled={loading}
+                                                            title="Remove Member"
                                                         >
                                                             <UserMinus className="h-4 w-4" />
                                                         </Button>
                                                     </>
                                                 )}
+                                                {team.leader?.id === member.id && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDemoteLeader(member.id)}
+                                                        disabled={loading}
+                                                        title="Demote to Member"
+                                                    >
+                                                        <ArrowDown className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
+                                    )) || (
+                                            <p className="text-sm text-muted-foreground">No members in this team</p>
+                                        )}
                                 </div>
                             </div>
                         </div>

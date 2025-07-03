@@ -1,10 +1,10 @@
-// Extended Team Management Hooks
+// Complete Team Management Hooks
 // File: hooks/use-teams.ts (replace existing)
 import { useEffect } from "react";
 import { useApi } from "./use-api";
 import { teamsApi, PaginationParams } from "@/lib/api";
 
-// Basic team hooks (existing)
+// Basic team hooks
 export function useTeams(params?: PaginationParams) {
   const { data, error, loading, execute } = useApi(teamsApi.list);
 
@@ -59,75 +59,46 @@ export function useDeleteTeam() {
   });
 }
 
-// NEW: Extended hooks for member management
-// These will use temporary direct fetch until API routes are created
-
-export function useAddTeamMember() {
-  const { execute, loading, error } = useApi(
-    async ({ teamId, userId }: { teamId: string; userId: string }) => {
-      const response = await fetch(`/api/dashboard/teams/${teamId}/members`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to add team member");
-      }
-
-      return result;
-    },
-    {
-      showSuccessToast: true,
-      successMessage: "Member added successfully!",
-    }
-  );
-
-  return { execute, loading, error };
-}
-
-export function useRemoveTeamMember() {
-  const { execute, loading, error } = useApi(
-    async ({ teamId, userId }: { teamId: string; userId: string }) => {
-      const response = await fetch(`/api/dashboard/teams/${teamId}/members/${userId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to remove team member");
-      }
-
-      return result;
-    },
-    {
-      showSuccessToast: true,
-      successMessage: "Member removed successfully!",
-    }
-  );
-
-  return { execute, loading, error };
-}
-
-export function useAvailableUsers(teamId: string) {
-  const { data, error, loading, execute } = useApi(async () => {
-    const response = await fetch(`/api/dashboard/teams/${teamId}/available-users`);
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || "Failed to load available users");
-    }
-
-    return result;
-  });
+// Member management hooks
+export function useTeamMembers(teamId: string) {
+  const { data, error, loading, execute } = useApi(teamsApi.getMembers);
 
   useEffect(() => {
     if (teamId) {
-      execute();
+      execute(teamId);
+    }
+  }, [execute, teamId]);
+
+  return {
+    team: data?.team || null,
+    members: data?.team?.members || [],
+    leader: data?.team?.leader || null,
+    error,
+    loading,
+    refetch: () => execute(teamId),
+  };
+}
+
+export function useAddTeamMember() {
+  return useApi(teamsApi.addMember, {
+    showSuccessToast: true,
+    successMessage: "Member added successfully!",
+  });
+}
+
+export function useRemoveTeamMember() {
+  return useApi(teamsApi.removeMember, {
+    showSuccessToast: true,
+    successMessage: "Member removed successfully!",
+  });
+}
+
+export function useAvailableUsers(teamId: string) {
+  const { data, error, loading, execute } = useApi(teamsApi.getAvailableUsers);
+
+  useEffect(() => {
+    if (teamId) {
+      execute(teamId);
     }
   }, [execute, teamId]);
 
@@ -135,31 +106,21 @@ export function useAvailableUsers(teamId: string) {
     users: data?.users || [],
     error,
     loading,
-    refetch: execute,
+    refetch: () => execute(teamId),
   };
 }
 
+// Leader management hooks
+export function useUpdateTeamLeader() {
+  return useApi(teamsApi.updateLeader, {
+    showSuccessToast: true,
+    successMessage: "Team leader updated successfully!",
+  });
+}
+
 export function useDemoteTeamLeader() {
-  const { execute, loading, error } = useApi(
-    async ({ teamId }: { teamId: string }) => {
-      const response = await fetch(`/api/dashboard/teams/${teamId}/demote-leader`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to demote team leader");
-      }
-
-      return result;
-    },
-    {
-      showSuccessToast: true,
-      successMessage: "Leader demoted successfully!",
-    }
-  );
-
-  return { execute, loading, error };
+  return useApi(teamsApi.demoteLeader, {
+    showSuccessToast: true,
+    successMessage: "Leader demoted successfully!",
+  });
 }

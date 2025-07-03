@@ -1,4 +1,5 @@
-// Centralized API exports
+// Centralized API exports - Updated with Complete Team Management
+// File: lib/api/index.ts (replace existing)
 export { authApi } from "./auth";
 export { profileApi } from "./profile";
 export { usersApi } from "./users";
@@ -9,4 +10,4 @@ export { default as apiClient } from "./client";
 export type { LoginRequest, LoginResponse, SetupProfileRequest, SetupProfileResponse } from "./auth";
 export type { UpdateProfileRequest, ProfileResponse } from "./profile";
 export type { CreateUserRequest, UpdateUserRequest, UsersListResponse, UserResponse } from "./users";
-export type { CreateTeamRequest, UpdateTeamRequest, TeamsListResponse, TeamResponse, PaginationParams } from "./teams";
+export type { CreateTeamRequest, UpdateTeamRequest, TeamsListResponse, TeamResponse, TeamMembersResponse, AvailableUsersResponse, AddMemberRequest, UpdateLeaderRequest, PaginationParams } from "./teams";
