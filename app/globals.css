@@ -81,7 +81,7 @@
   }
 
   body {
-    @apply bg-white text-foreground;
+    @apply bg-background text-foreground;
   }
 
   /* Page backgrounds - all white except login */
@@ -175,5 +175,11 @@
 
   [data-sonner-toast] [data-close-button]:hover {
     transform: scale(1.05);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
