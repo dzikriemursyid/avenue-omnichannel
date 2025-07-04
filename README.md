@@ -90,27 +90,6 @@ pnpm supabase db push
 pnpm dev
 ```
 
-## API Migration (In Progress)
-
-We are gradually migrating from Server Actions to REST API routes for better flexibility and standards compliance.
-
-### Current Status
-
-- ✅ **Phase 1**: Infrastructure setup (utilities, middleware, auth)
-- 🚧 **Phase 2**: Core API routes implementation
-- ⏳ **Phase 3**: Frontend integration
-- ⏳ **Phase 4**: Complete migration
-
-### New API Features
-
-- **Standardized Responses**: Consistent JSON response format
-- **Rate Limiting**: Built-in protection against API abuse
-- **Authentication**: JWT-based auth with role validation
-- **Validation**: Zod-based request validation
-- **Error Handling**: Centralized error handling with proper HTTP codes
-
-See [API Migration Guide](docs/API_MIGRATION_GUIDE.md) for detailed information.
-
 ## User Roles
 
 The system supports four user roles with different permissions:

@@ -282,15 +282,15 @@ export function ProfileOptimized() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Profile Card - Takes full width on mobile, 2 columns on desktop */}
                 <div className="xl:col-span-2">
-                    <Card className="shadow-lg border-0 bg-white">
-                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                            <CardTitle className="flex items-center gap-3 text-xl text-gray-900">
-                                <div className="p-2 bg-blue-100 rounded-lg">
-                                    <User className="h-5 w-5 text-blue-600" />
+                    <Card className="shadow-lg border-0 bg-card">
+                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-t-lg">
+                            <CardTitle className="flex items-center gap-3 text-xl text-card-foreground">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                                    <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 Personal Information
                             </CardTitle>
-                            <CardDescription className="text-gray-600">
+                            <CardDescription className="text-muted-foreground">
                                 Your profile details and contact information
                             </CardDescription>
                         </CardHeader>
@@ -367,8 +367,8 @@ export function ProfileOptimized() {
                                 </div>
 
                                 <div className="flex-1 space-y-1 text-center sm:text-left">
-                                    <h2 className="text-2xl font-bold text-gray-900">{profile.full_name}</h2>
-                                    <p className="text-gray-600">{profile.email}</p>
+                                    <h2 className="text-2xl font-bold text-foreground">{profile.full_name}</h2>
+                                    <p className="text-muted-foreground">{profile.email}</p>
                                     <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
                                         <Badge className={`${roleColors[profile.role]} px-3 py-1 text-sm font-medium shadow-sm`}>
                                             <Shield className="h-3 w-3 mr-1" />
@@ -396,21 +396,21 @@ export function ProfileOptimized() {
                                             value={formData.full_name}
                                             onChange={(e) => handleInputChange("full_name", e.target.value)}
                                             disabled={isLoading}
-                                            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                            className="border-gray-200 focus:border-primary focus:ring-primary"
                                         />
                                     ) : (
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                            <User className="h-4 w-4 text-gray-500" />
-                                            <span className="font-medium text-gray-900">{profile.full_name}</span>
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+                                            <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="font-medium text-gray-900 dark:text-gray-100">{profile.full_name}</span>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="space-y-3">
                                     <Label className="text-sm font-semibold text-gray-700">Email Address</Label>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                        <Mail className="h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700">{profile.email}</span>
+                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+                                        <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                        <span className="text-gray-700 dark:text-gray-100">{profile.email}</span>
                                     </div>
                                 </div>
 
@@ -425,21 +425,21 @@ export function ProfileOptimized() {
                                             onChange={(e) => handleInputChange("phone_number", e.target.value)}
                                             placeholder="Enter phone number"
                                             disabled={isLoading}
-                                            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                            className="border-gray-200 focus:border-primary focus:ring-primary"
                                         />
                                     ) : (
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                            <Phone className="h-4 w-4 text-gray-500" />
-                                            <span className="text-gray-700">{profile.phone_number || "Not provided"}</span>
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+                                            <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="text-gray-700 dark:text-gray-100">{profile.phone_number || "Not provided"}</span>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="space-y-3">
                                     <Label className="text-sm font-semibold text-gray-700">Team Assignment</Label>
-                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                        <Building2 className="h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700">{profile.team_id ? "Team Member" : "No team assigned"}</span>
+                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+                                        <Building2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                        <span className="text-gray-700 dark:text-gray-100">{profile.team_id ? "Team Member" : "No team assigned"}</span>
                                     </div>
                                 </div>
                             </div>
@@ -450,7 +450,7 @@ export function ProfileOptimized() {
                                         variant="outline"
                                         onClick={handleCancel}
                                         disabled={isLoading}
-                                        className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
+                                        className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent dark:text-gray-100 dark:hover:bg-gray-900/50"
                                     >
                                         <X className="h-4 w-4 mr-2" />
                                         Cancel
@@ -458,7 +458,7 @@ export function ProfileOptimized() {
                                     <Button
                                         onClick={handleSave}
                                         disabled={isLoading}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground dark:text-primary-foreground/90 shadow-lg"
                                     >
                                         <Save className="h-4 w-4 mr-2" />
                                         {isLoading ? "Saving..." : "Save Changes"}
@@ -475,23 +475,23 @@ export function ProfileOptimized() {
                 <div className="xl:col-span-1">
                     <div className="space-y-6">
                         {/* Account Info Card */}
-                        <Card className="shadow-lg border-0 bg-white">
-                            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                                    <div className="p-2 bg-green-100 rounded-lg">
-                                        <Calendar className="h-4 w-4 text-green-600" />
+                        <Card className="shadow-lg border-0 bg-card">
+                            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-t-lg">
+                                <CardTitle className="flex items-center gap-3 text-lg text-card-foreground">
+                                    <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                                        <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     Account Details
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4 space-y-4">
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                                         <div className="flex items-center gap-2">
-                                            <Calendar className="h-4 w-4 text-gray-500" />
-                                            <span className="text-sm text-gray-600">Member Since</span>
+                                            <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">Member Since</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-gray-900">
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             {new Date(profile.created_at).toLocaleDateString("en-US", {
                                                 month: "short",
                                                 day: "numeric",
@@ -500,12 +500,12 @@ export function ProfileOptimized() {
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                                         <div className="flex items-center gap-2">
-                                            <Clock className="h-4 w-4 text-gray-500" />
-                                            <span className="text-sm text-gray-600">Last Updated</span>
+                                            <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-gray-900">
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             {new Date(profile.updated_at).toLocaleDateString("en-US", {
                                                 month: "short",
                                                 day: "numeric",
@@ -513,12 +513,12 @@ export function ProfileOptimized() {
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                                         <div className="flex items-center gap-2">
-                                            <Key className="h-4 w-4 text-gray-500" />
-                                            <span className="text-sm text-gray-600">User ID</span>
+                                            <Key className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">User ID</span>
                                         </div>
-                                        <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-700">
+                                        <span className="text-xs font-mono bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-700 dark:text-gray-100">
                                             {profile.id.slice(0, 8)}...
                                         </span>
                                     </div>
@@ -527,28 +527,28 @@ export function ProfileOptimized() {
                         </Card>
 
                         {/* Permissions Card */}
-                        <Card className="shadow-lg border-0 bg-white">
-                            <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-t-lg">
-                                <CardTitle className="flex items-center gap-3 text-lg text-gray-900">
-                                    <div className="p-2 bg-purple-100 rounded-lg">
-                                        <Settings className="h-4 w-4 text-purple-600" />
+                        <Card className="shadow-lg border-0 bg-card">
+                            <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 rounded-t-lg">
+                                <CardTitle className="flex items-center gap-3 text-lg text-card-foreground">
+                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                                        <Settings className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                     </div>
                                     Permissions
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4">
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                                        <span className="text-sm text-gray-700">Dashboard Access</span>
-                                        <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50">
+                                        <span className="text-sm text-foreground">Dashboard Access</span>
+                                        <Badge variant="outline" className="text-xs text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                             <CheckCircle className="h-3 w-3 mr-1" />
                                             Active
                                         </Badge>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                                        <span className="text-sm text-gray-700">Contact Management</span>
-                                        <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                                    <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50">
+                                        <span className="text-sm text-foreground">Contact Management</span>
+                                        <Badge variant="outline" className="text-xs text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                             <CheckCircle className="h-3 w-3 mr-1" />
                                             Active
                                         </Badge>
@@ -556,17 +556,17 @@ export function ProfileOptimized() {
 
                                     {(profile.role === "admin" || profile.role === "general_manager" || profile.role === "leader") && (
                                         <>
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                                                <span className="text-sm text-gray-700">Campaign Management</span>
-                                                <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                                            <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border dark:bg-green-950/20 border-green-100 dark:border-green-900/50">
+                                                <span className="text-sm text-foreground">Campaign Management</span>
+                                                <Badge variant="outline" className="text-xs text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                                     <CheckCircle className="h-3 w-3 mr-1" />
                                                     Active
                                                 </Badge>
                                             </div>
 
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                                                <span className="text-sm text-gray-700">Analytics Access</span>
-                                                <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                                            <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border dark:bg-green-950/20 border-green-100 dark:border-green-900/50">
+                                                <span className="text-sm text-foreground">Analytics Access</span>
+                                                <Badge variant="outline" className="text-xs text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                                     <CheckCircle className="h-3 w-3 mr-1" />
                                                     Active
                                                 </Badge>
@@ -575,9 +575,9 @@ export function ProfileOptimized() {
                                     )}
 
                                     {profile.role === "admin" && (
-                                        <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border border-green-100">
-                                            <span className="text-sm text-gray-700">User Management</span>
-                                            <Badge variant="outline" className="text-xs text-green-700 border-green-200">
+                                        <div className="flex items-center justify-between p-2 rounded-lg bg-green-50 border dark:bg-green-950/20 border-green-100 dark:border-green-900/50">
+                                            <span className="text-sm text-foreground">User Management</span>
+                                            <Badge variant="outline" className="text-xs text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                                                 <CheckCircle className="h-3 w-3 mr-1" />
                                                 Active
                                             </Badge>

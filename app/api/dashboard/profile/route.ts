@@ -11,7 +11,7 @@ import { withAuth, type AuthenticatedRequest } from "@/lib/middleware/api-auth";
 // Update profile request schema
 const updateProfileSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
-  phone_number: z.string().optional(),
+  phone_number: z.string().nullable().optional(),
 });
 
 // GET /api/dashboard/profile
@@ -44,6 +44,8 @@ export async function PUT(request: NextRequest) {
       formData.append("full_name", validatedData.full_name);
       if (validatedData.phone_number) {
         formData.append("phone_number", validatedData.phone_number);
+      } else {
+        formData.append("phone_number", "");
       }
 
       // Call existing profile update action

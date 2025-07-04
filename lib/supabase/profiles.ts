@@ -64,7 +64,13 @@ export async function getOrCreateUserProfile(userId: string, email: string, full
 export async function updateUserProfile(userId: string, updates: Partial<Pick<UserProfile, "full_name" | "phone_number" | "avatar_url">>): Promise<UserProfile | null> {
   const supabase = await createClient();
 
-  const { data: profile, error } = await supabase.from("profiles").update(updates).eq("id", userId).select().single();
+  // Add updated_at timestamp
+  const updateData = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: profile, error } = await supabase.from("profiles").update(updateData).eq("id", userId).select().single();
 
   if (error) {
     console.error("Error updating user profile:", error);

@@ -84,13 +84,13 @@
     @apply bg-background text-foreground;
   }
 
-  /* Page backgrounds - all white except login */
+  /* Page backgrounds - responsive to theme */
   .page-background {
-    @apply bg-white min-h-screen;
+    @apply bg-background min-h-screen;
   }
 
   .login-background {
-    @apply bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen;
+    @apply bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950/20 dark:to-slate-950/50 min-h-screen;
   }
 }
 

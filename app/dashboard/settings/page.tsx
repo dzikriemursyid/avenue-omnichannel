@@ -271,19 +271,19 @@ export default async function SettingsPage() {
                   System Maintenance
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button variant="outline" className="justify-start bg-transparent">
+                  <Button variant="outline" className="justify-start">
                     <Database className="h-4 w-4 mr-2" />
                     Export System Logs
                   </Button>
-                  <Button variant="outline" className="justify-start bg-transparent">
+                  <Button variant="outline" className="justify-start">
                     <Settings className="h-4 w-4 mr-2" />
                     Clear Cache
                   </Button>
-                  <Button variant="outline" className="justify-start bg-transparent">
+                  <Button variant="outline" className="justify-start">
                     <Database className="h-4 w-4 mr-2" />
                     Backup Database
                   </Button>
-                  <Button variant="outline" className="justify-start bg-transparent">
+                  <Button variant="outline" className="justify-start">
                     <Globe className="h-4 w-4 mr-2" />
                     System Health Check
                   </Button>

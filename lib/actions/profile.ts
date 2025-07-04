@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const UpdateProfileSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
-  phone_number: z.string().optional(),
+  phone_number: z.string().nullable().optional(),
 });
 
 export type ProfileActionResult = {
@@ -29,8 +29,13 @@ export async function updateProfile(formData: FormData): Promise<ProfileActionRe
 
     const rawData = {
       full_name: formData.get("full_name") as string,
-      phone_number: (formData.get("phone_number") as string) || null,
+      phone_number: formData.get("phone_number") as string | null,
     };
+
+    // Clean up phone_number: convert empty string to null
+    if (rawData.phone_number === "" || rawData.phone_number === undefined) {
+      rawData.phone_number = null;
+    }
 
     const validation = UpdateProfileSchema.safeParse(rawData);
     if (!validation.success) {

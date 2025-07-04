@@ -772,17 +772,17 @@ export function UserManagement({ users, teams, currentUser }: UserManagementProp
                         </DialogHeader>
 
                         <div className="space-y-4">
-                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                                 <div className="flex items-start space-x-3">
                                     <div className="flex-shrink-0">
-                                        <Trash2 className="h-5 w-5 text-red-600" />
+                                        <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-sm font-medium text-red-800">Warning</h4>
-                                        <p className="text-sm text-red-700 mt-1">
+                                        <h4 className="text-sm font-medium text-red-800 dark:text-red-200">Warning</h4>
+                                        <p className="text-sm text-red-700 dark:text-red-300 mt-1">
                                             This will permanently delete the user account and all associated data including:
                                         </p>
-                                        <ul className="text-sm text-red-700 mt-2 space-y-1">
+                                        <ul className="text-sm text-red-700 dark:text-red-300 mt-2 space-y-1">
                                             <li>• User profile and settings</li>
                                             <li>• Team assignments</li>
                                             <li>• Conversation history</li>
@@ -792,7 +792,7 @@ export function UserManagement({ users, teams, currentUser }: UserManagementProp
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-2 p-3 bg-muted rounded-lg">
                                 <div className="flex-shrink-0">
                                     <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                                         <span className="text-sm font-medium text-gray-600">

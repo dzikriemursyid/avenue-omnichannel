@@ -53,7 +53,7 @@ export default function Analytics({ profile, analytics }: AnalyticsProps) {
       </div>
 
       <Tabs defaultValue="personal" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
+        <TabsList className={`grid w-full grid-cols-1 sm:grid-cols-${hasPermission(profile.role, "view_global_analytics") ? 3 : hasPermission(profile.role, "view_team_analytics") ? 2 : 1} h-auto`}>
           <TabsTrigger value="personal" className="w-full">
             Personal
           </TabsTrigger>
