@@ -30,6 +30,7 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
   sort: z.string().optional(),
   order: z.enum(["asc", "desc"]).optional().default("desc"),
+  search: z.string().optional(),
 });
 
 export const idParamsSchema = z.object({

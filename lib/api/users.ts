@@ -20,6 +20,10 @@ export interface UpdateUserRequest {
   phone_number?: string;
 }
 
+export interface UpdatePasswordRequest {
+  password: string;
+}
+
 export interface UsersListResponse {
   users: Profile[];
   pagination: {
@@ -39,6 +43,7 @@ export interface PaginationParams {
   limit?: number;
   sort?: string;
   order?: "asc" | "desc";
+  search?: string;
 }
 
 export const usersApi = {
@@ -56,6 +61,10 @@ export const usersApi = {
 
   update: async (id: string, data: UpdateUserRequest) => {
     return apiClient.put<UserResponse>(`/dashboard/users/${id}`, data);
+  },
+
+  updatePassword: async (id: string, data: UpdatePasswordRequest) => {
+    return apiClient.put<{ message: string }>(`/dashboard/users/${id}/password`, data);
   },
 
   delete: async (id: string) => {

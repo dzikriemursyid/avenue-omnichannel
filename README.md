@@ -33,7 +33,7 @@ avenue-omnichannel/
 │   ├── ui/               # UI components (Shadcn)
 │   └── dashboard/        # Dashboard-specific components
 ├── lib/                   # Utilities and configurations
-│   ├── actions/          # Server actions
+│   ├── actions/          # Server actions (deprecated)
 │   ├── middleware/       # API middleware (new)
 │   ├── supabase/         # Supabase clients and utilities
 │   └── utils/            # Helper functions

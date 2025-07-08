@@ -11,7 +11,7 @@ export { useLogin, useSetupProfile, useLogout } from "./use-auth";
 export { useProfile, useUpdateProfile } from "./use-profile";
 
 // User management hooks
-export { useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser } from "./use-users";
+export { useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser, useUpdatePassword } from "./use-users";
 
 // Team management hooks - COMPLETE MIGRATION
 export {

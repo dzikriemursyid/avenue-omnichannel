@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
-import { getAllUsers, getAllTeams } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
-import { UserManagement } from "@/components/dashboard/user-management"
+import { UserManagementOptimized } from "@/components/dashboard/user-management-optimized"
 
 export default async function UsersPage() {
   const supabase = await createClient()
@@ -24,11 +23,5 @@ export default async function UsersPage() {
     redirect("/dashboard")
   }
 
-  // Fetch data
-  const [users, teams] = await Promise.all([
-    getAllUsers(),
-    getAllTeams()
-  ])
-
-  return <UserManagement users={users} teams={teams} currentUser={currentUser} />
+  return <UserManagementOptimized currentUser={currentUser} />
 }

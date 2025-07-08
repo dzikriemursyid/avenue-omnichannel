@@ -8,7 +8,7 @@ export function useUsers(params?: PaginationParams) {
 
   useEffect(() => {
     execute(params);
-  }, [execute, params?.page, params?.limit, params?.sort, params?.order]);
+  }, [execute, params?.page, params?.limit, params?.sort, params?.order, params?.search]);
 
   return {
     users: data?.users || [],
@@ -54,5 +54,12 @@ export function useDeleteUser() {
   return useApi(usersApi.delete, {
     showSuccessToast: true,
     successMessage: "User deleted successfully!",
+  });
+}
+
+export function useUpdatePassword() {
+  return useApi(usersApi.updatePassword, {
+    showSuccessToast: true,
+    successMessage: "Password updated successfully!",
   });
 }

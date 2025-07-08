@@ -48,6 +48,7 @@ export interface PaginationParams {
   limit?: number;
   sort?: string;
   order?: "asc" | "desc";
+  search?: string;
 }
 
 // Member management interfaces

@@ -27,19 +27,26 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(errorResponse("Insufficient permissions"), { status: 403 });
       }
 
-      // Parse query parameters for pagination
+      // Parse query parameters for pagination and search
       const url = new URL(request.url);
       const queryParams = {
         page: url.searchParams.get("page") || "1",
         limit: url.searchParams.get("limit") || "10",
         sort: url.searchParams.get("sort") || "created_at",
         order: url.searchParams.get("order") || "desc",
+        search: url.searchParams.get("search") || undefined,
       };
 
       const pagination = await validateRequest(queryParams, paginationSchema);
 
       // Get all users (for now, we'll implement pagination later)
-      const users = await getAllUsers();
+      let users = await getAllUsers();
+
+      // Apply search filter if provided
+      if (pagination.search) {
+        const searchTerm = pagination.search.toLowerCase();
+        users = users.filter((user) => user.full_name.toLowerCase().includes(searchTerm) || user.email.toLowerCase().includes(searchTerm));
+      }
 
       // Simple client-side pagination for now
       const page = pagination.page ?? 1;
