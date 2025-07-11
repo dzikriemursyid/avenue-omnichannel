@@ -14,6 +14,7 @@ import {
   User,
   LogOut,
   Zap,
+  FileText,
 } from "lucide-react"
 
 import {
@@ -77,6 +78,13 @@ const navigationItems = [
     title: "Campaigns",
     url: "/dashboard/campaigns",
     icon: Send,
+    permission: "view_campaigns" as const,
+    section: "management",
+  },
+  {
+    title: "Templates",
+    url: "/dashboard/templates",
+    icon: FileText,
     permission: "view_campaigns" as const,
     section: "management",
   },

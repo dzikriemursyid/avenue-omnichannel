@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
-import Campaign from "@/components/dashboard/campaign"
+import { CampaignOverview } from "@/components/dashboard/campaigns"
 
 export default async function CampaignsPage() {
   const supabase = await createClient()
@@ -63,7 +63,35 @@ export default async function CampaignsPage() {
       created_by: "Lisa Chen",
       created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
     },
+    {
+      id: "4",
+      name: "Holiday Promotion",
+      description: "Special holiday offers and discounts",
+      status: "draft" as const,
+      template_name: "Holiday Promo",
+      target_count: 3000,
+      sent_count: 0,
+      delivered_count: 0,
+      read_count: 0,
+      scheduled_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14), // In 2 weeks
+      created_by: "Alex Rodriguez",
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
+    },
+    {
+      id: "5",
+      name: "Weekly Newsletter",
+      description: "Weekly updates and industry insights",
+      status: "paused" as const,
+      template_name: "Newsletter Template",
+      target_count: 2000,
+      sent_count: 1200,
+      delivered_count: 1150,
+      read_count: 890,
+      scheduled_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+      created_by: "Emma Thompson",
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
+    },
   ]
 
-  return <Campaign profile={profile} campaigns={campaigns} />
+  return <CampaignOverview profile={profile} campaigns={campaigns} />
 }
