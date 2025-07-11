@@ -1,13 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { GeistSans } from "geist/font/sans"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
-const geist = Geist({
-  subsets: ["latin"],
-})
+const geist = GeistSans
 
 export const metadata: Metadata = {
   title: "Avenue Developments",
