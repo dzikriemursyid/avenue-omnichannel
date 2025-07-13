@@ -1,11 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
-
-const geist = GeistSans
 
 export const metadata: Metadata = {
   title: "Avenue Developments",
@@ -20,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={geist.className}>
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

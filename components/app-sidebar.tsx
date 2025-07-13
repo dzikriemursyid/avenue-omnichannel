@@ -13,8 +13,6 @@ import {
   ChevronUp,
   User,
   LogOut,
-  Zap,
-  FileText,
 } from "lucide-react"
 
 import {
@@ -43,8 +41,6 @@ import type { UserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { useLogout } from "@/hooks"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -78,13 +74,6 @@ const navigationItems = [
     title: "Campaigns",
     url: "/dashboard/campaigns",
     icon: Send,
-    permission: "view_campaigns" as const,
-    section: "management",
-  },
-  {
-    title: "Templates",
-    url: "/dashboard/templates",
-    icon: FileText,
     permission: "view_campaigns" as const,
     section: "management",
   },

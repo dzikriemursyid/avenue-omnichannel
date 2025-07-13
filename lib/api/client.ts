@@ -20,7 +20,10 @@ class ApiClient {
     const url = new URL(fullEndpoint, window.location.origin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
+        // Only add parameters that are not undefined or null
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
       });
     }
 

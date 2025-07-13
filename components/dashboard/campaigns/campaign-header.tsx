@@ -26,12 +26,12 @@ export default function CampaignHeader({ profile }: CampaignHeaderProps) {
                 title: "Create New Campaign",
                 description: "Set up a new campaign with your target audience and messaging strategy."
             }
-        } else if (pathname === "/dashboard/campaigns/send") {
+        } else if (pathname === "/dashboard/campaigns/templates") {
             return {
-                title: "Send Campaigns",
-                description: "Manage and send your campaigns to target audiences."
+                title: "WhatsApp Templates",
+                description: "Manage your WhatsApp message templates."
             }
-        } else if (pathname.startsWith("/dashboard/campaigns/") && pathname !== "/dashboard/campaigns/create" && pathname !== "/dashboard/campaigns/send") {
+        } else if (pathname.startsWith("/dashboard/campaigns/") && pathname !== "/dashboard/campaigns/create" && pathname !== "/dashboard/campaigns/templates") {
             return {
                 title: "Campaign Details",
                 description: "View and manage campaign details and performance."

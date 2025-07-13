@@ -3,7 +3,6 @@ import { getUserProfile } from "@/lib/supabase/profiles"
 import { hasPermission } from "@/lib/supabase/rbac"
 import { redirect } from "next/navigation"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
 import { Send, Plus, List } from "lucide-react"
 import Link from "next/link"
 import CampaignHeader from "@/components/dashboard/campaigns/campaign-header"
@@ -47,10 +46,10 @@ export default async function CampaignsLayout({ children }: CampaignsLayoutProps
                                     <span className="hidden sm:inline">Create</span>
                                 </Link>
                             </TabsTrigger>
-                            <TabsTrigger value="send" asChild>
-                                <Link href="/dashboard/campaigns/send" className="flex items-center gap-2">
+                            <TabsTrigger value="templates" asChild>
+                                <Link href="/dashboard/campaigns/templates" className="flex items-center gap-2">
                                     <Send className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Send</span>
+                                    <span className="hidden sm:inline">Templates</span>
                                 </Link>
                             </TabsTrigger>
                         </>

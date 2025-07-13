@@ -13,6 +13,9 @@ export { useProfile, useUpdateProfile } from "./use-profile";
 // User management hooks
 export { useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser, useUpdatePassword } from "./use-users";
 
+// Contacts management hooks
+export { useContacts, useContact, useCreateContact, useUpdateContact, useDeleteContact } from "./use-contacts";
+
 // Team management hooks - COMPLETE MIGRATION
 export {
   // Basic team operations
@@ -36,6 +39,12 @@ export {
   useBulkAddTeamMembers,
   useBulkRemoveTeamMembers,
 } from "./use-teams";
+
+// Campaign management hooks
+export { useCampaigns, useCampaign } from "./use-campaigns";
+
+// Template management hooks
+export { useTemplates, useTemplate } from "./use-templates";
 
 // Performance optimization hooks
 export { useDebounce, useDebouncedCallback } from "./use-debounce";
