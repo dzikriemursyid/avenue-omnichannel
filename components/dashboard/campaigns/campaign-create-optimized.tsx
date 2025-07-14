@@ -13,22 +13,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Calendar, Users, MessageSquare, Clock, Send, ArrowLeft } from "lucide-react"
 import { useProfile } from "@/hooks"
 import { useTemplates } from "@/hooks/use-templates"
+import { useContactGroups } from "@/hooks/use-contact-groups"
+import { useCreateCampaign } from "@/hooks/use-campaigns"
 import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-interface Audience {
-    id: string
-    name: string
-    count: number
-}
-
 export function CampaignCreateOptimized() {
     const { profile, loading: profileLoading, error: profileError } = useProfile()
     const { templates, loading: templatesLoading, error: templatesError } = useTemplates()
-    const [audiences, setAudiences] = useState<Audience[]>([])
-    const [audiencesLoading, setAudiencesLoading] = useState(true)
-    const [creating, setCreating] = useState(false)
+    const { groups: contactGroups, loading: groupsLoading, error: groupsError } = useContactGroups()
+    const { execute: createCampaign, loading: creating, error: createError } = useCreateCampaign()
     const router = useRouter()
 
     // Form state
@@ -37,59 +32,90 @@ export function CampaignCreateOptimized() {
         description: "",
         templateId: "",
         audienceId: "",
-        scheduleType: "now", // "now" or "scheduled"
+        scheduleType: "immediate", // "immediate" or "scheduled"
         scheduledDate: "",
         scheduledTime: "",
     })
-
-    // Mock audiences data
-    const mockAudiences: Audience[] = [
-        { id: "1", name: "All Customers", count: 12500 },
-        { id: "2", name: "New Customers (Last 30 days)", count: 850 },
-        { id: "3", name: "Premium Customers", count: 2300 },
-        { id: "4", name: "Inactive Customers", count: 4200 },
-        { id: "5", name: "Test Group", count: 50 },
-    ]
-
-    // Load audiences
-    useEffect(() => {
-        const loadAudiences = async () => {
-            setAudiencesLoading(true)
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500))
-            setAudiences(mockAudiences)
-            setAudiencesLoading(false)
-        }
-
-        loadAudiences()
-    }, [])
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
     const handleCreateCampaign = useCallback(async () => {
-        if (!formData.name || !formData.templateId || !formData.audienceId) {
-            toast.error("Please fill in all required fields")
+        // Validation
+        if (!formData.name.trim()) {
+            toast.error("Please enter a campaign name")
             return
         }
 
-        setCreating(true)
-        try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000))
-
-            toast.success("Campaign created successfully!")
-            router.push("/dashboard/campaigns")
-        } catch (error) {
-            toast.error("Failed to create campaign. Please try again.")
-        } finally {
-            setCreating(false)
+        if (!formData.templateId) {
+            toast.error("Please select a template")
+            return
         }
-    }, [formData, router])
+
+        if (!formData.audienceId) {
+            toast.error("Please select an audience")
+            return
+        }
+
+        // Validate scheduled campaign
+        if (formData.scheduleType === "scheduled") {
+            if (!formData.scheduledDate || !formData.scheduledTime) {
+                toast.error("Please select both date and time for scheduled campaign")
+                return
+            }
+
+            const scheduledDateTime = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`)
+            const now = new Date()
+
+            if (scheduledDateTime <= now) {
+                toast.error("Scheduled time must be in the future")
+                return
+            }
+        }
+
+        try {
+            // Prepare campaign data
+            const campaignData = {
+                name: formData.name.trim(),
+                description: formData.description.trim() || undefined,
+                template_id: formData.templateId,
+                audience_id: formData.audienceId,
+                schedule_type: formData.scheduleType as "immediate" | "scheduled",
+                scheduled_at: formData.scheduleType === "scheduled"
+                    ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
+                    : undefined,
+            }
+
+            // Create campaign
+            const result = await createCampaign(campaignData)
+
+            if (result) {
+                const successMessage = formData.scheduleType === "immediate"
+                    ? "Campaign created and sent successfully!"
+                    : "Campaign scheduled successfully!"
+
+                toast.success(successMessage)
+                router.push("/dashboard/campaigns")
+            }
+        } catch (error: any) {
+            console.error("Campaign creation error:", error)
+
+            // Handle specific error cases
+            if (error.message?.includes("Template not found")) {
+                toast.error("Selected template not found. Please choose another template.")
+            } else if (error.message?.includes("Contact group not found")) {
+                toast.error("Selected audience not found. Please choose another audience.")
+            } else if (error.message?.includes("Template must be approved")) {
+                toast.error("Selected template is not approved. Please choose an approved template.")
+            } else {
+                toast.error(error.message || "Failed to create campaign. Please try again.")
+            }
+        }
+    }, [formData, createCampaign, router])
 
     // Loading state
-    if (profileLoading || templatesLoading || audiencesLoading) {
+    if (profileLoading || templatesLoading || groupsLoading) {
         return (
             <div className="space-y-6">
                 {/* Header Skeleton */}
@@ -138,17 +164,9 @@ export function CampaignCreateOptimized() {
                         {/* Audience Selection Section */}
                         <div className="space-y-4">
                             <Skeleton className="h-5 w-36" />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <Card key={i} className="cursor-pointer hover:shadow-md transition-shadow">
-                                        <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
-                                                <Skeleton className="h-5 w-2/3" />
-                                                <Skeleton className="h-4 w-12" />
-                                            </div>
-                                        </CardHeader>
-                                    </Card>
-                                ))}
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-10 w-full" />
                             </div>
                         </div>
 
@@ -179,12 +197,12 @@ export function CampaignCreateOptimized() {
     }
 
     // Error state
-    if (profileError || templatesError) {
+    if (profileError || templatesError || groupsError) {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                    Failed to load campaign creation page: {(profileError || templatesError)?.message}
+                    Failed to load campaign creation page: {(profileError || templatesError || groupsError)?.message}
                 </AlertDescription>
             </Alert>
         )
@@ -271,9 +289,9 @@ export function CampaignCreateOptimized() {
                                                 <MessageSquare className="h-4 w-4" />
                                                 <div className="flex flex-col">
                                                     <span className="font-medium">{template.name}</span>
-                                                    {/* <span className="text-xs text-muted-foreground capitalize">
+                                                    <span className="text-xs text-muted-foreground capitalize">
                                                         {template.category} • {template.status}
-                                                    </span> */}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </SelectItem>
@@ -334,25 +352,61 @@ export function CampaignCreateOptimized() {
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Select Audience *</h3>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {audiences.map((audience) => (
-                                <Card
-                                    key={audience.id}
-                                    className={`cursor-pointer hover:shadow-md transition-all ${formData.audienceId === audience.id ? "ring-2 ring-primary" : ""
-                                        }`}
-                                    onClick={() => !creating && handleInputChange("audienceId", audience.id)}
-                                >
-                                    <CardHeader className="pb-3">
-                                        <div className="flex justify-between items-start">
-                                            <CardTitle className="text-base">{audience.name}</CardTitle>
-                                            <Badge variant="secondary" className="text-xs">
-                                                <Users className="h-3 w-3 mr-1" />
-                                                {audience.count.toLocaleString()}
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
-                                </Card>
-                            ))}
+                        <div className="space-y-2">
+                            <Label htmlFor="audience">Contact Group</Label>
+                            <Select
+                                value={formData.audienceId}
+                                onValueChange={(value) => handleInputChange("audienceId", value)}
+                                disabled={creating || groupsLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose a contact group" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {contactGroups.map((group) => (
+                                        <SelectItem key={group.id} value={group.id}>
+                                            <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="h-4 w-4" />
+                                                    <span className="font-medium">{group.name}</span>
+                                                </div>
+                                                <Badge variant="secondary" className="text-xs ml-2">
+                                                    {group.contact_count.toLocaleString()}
+                                                </Badge>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            {formData.audienceId && (
+                                <div className="mt-3">
+                                    {(() => {
+                                        const selectedGroup = contactGroups.find(g => g.id === formData.audienceId)
+                                        if (!selectedGroup) return null
+                                        return (
+                                            <Card className="bg-muted/50">
+                                                <CardHeader className="pb-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <CardTitle className="text-base">{selectedGroup.name}</CardTitle>
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            <Users className="h-3 w-3 mr-1" />
+                                                            {selectedGroup.contact_count.toLocaleString()} contacts
+                                                        </Badge>
+                                                    </div>
+                                                </CardHeader>
+                                                {selectedGroup.description && (
+                                                    <CardContent>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {selectedGroup.description}
+                                                        </p>
+                                                    </CardContent>
+                                                )}
+                                            </Card>
+                                        )
+                                    })()}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -366,8 +420,8 @@ export function CampaignCreateOptimized() {
                             disabled={creating}
                         >
                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="now" id="now" />
-                                <Label htmlFor="now">Send now</Label>
+                                <RadioGroupItem value="immediate" id="immediate" />
+                                <Label htmlFor="immediate">Send now</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="scheduled" id="scheduled" />
@@ -418,7 +472,7 @@ export function CampaignCreateOptimized() {
                             ) : (
                                 <>
                                     <Send className="h-4 w-4 mr-2" />
-                                    Create Campaign
+                                    {formData.scheduleType === "immediate" ? "Create & Send Campaign" : "Schedule Campaign"}
                                 </>
                             )}
                         </Button>

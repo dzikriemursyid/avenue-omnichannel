@@ -1,142 +1,62 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Send, Calendar, Users, TrendingUp, MoreHorizontal, ExternalLink, RefreshCw } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Send, Calendar, Users, TrendingUp, ExternalLink, RefreshCw, Eye, AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
 import { hasPermission } from "@/lib/supabase/rbac"
-import { useProfile } from "@/hooks"
+import { useProfile, useCampaigns } from "@/hooks"
 import { toast } from "sonner"
 import Link from "next/link"
 
-interface Campaign {
-    id: string
-    name: string
-    description: string
-    status: "draft" | "scheduled" | "running" | "completed" | "paused" | "failed"
-    template_name: string
-    target_count: number
-    sent_count: number
-    delivered_count: number
-    read_count: number
-    scheduled_at: Date
-    created_by: string
-    created_at: Date
-}
+import type { Campaign } from "@/lib/api/campaigns"
 
 export function CampaignOverviewOptimized() {
     const { profile, loading: profileLoading, error: profileError } = useProfile()
-    const [campaigns, setCampaigns] = useState<Campaign[]>([])
-    const [campaignsLoading, setCampaignsLoading] = useState(true)
+    const { campaigns, loading: campaignsLoading, error: campaignsError, refetch } = useCampaigns()
     const [isRefreshing, setIsRefreshing] = useState(false)
+    const [autoRefresh, setAutoRefresh] = useState(true)
 
-    // Mock campaign data - in real app this would come from a hook
-    const mockCampaigns: Campaign[] = [
-        {
-            id: "1",
-            name: "Welcome Series",
-            description: "Onboarding sequence for new customers",
-            status: "running",
-            template_name: "Welcome Template",
-            target_count: 1250,
-            sent_count: 980,
-            delivered_count: 945,
-            read_count: 678,
-            scheduled_at: new Date(Date.now() + 1000 * 60 * 60 * 24), // Tomorrow
-            created_by: "Sarah Wilson",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-        },
-        {
-            id: "2",
-            name: "Product Launch",
-            description: "Announcing our new product features",
-            status: "scheduled",
-            template_name: "Product Announcement",
-            target_count: 5000,
-            sent_count: 0,
-            delivered_count: 0,
-            read_count: 0,
-            scheduled_at: new Date(Date.now() + 1000 * 60 * 60 * 48), // In 2 days
-            created_by: "Mike Johnson",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-        },
-        {
-            id: "3",
-            name: "Customer Feedback",
-            description: "Collecting feedback from recent purchases",
-            status: "completed",
-            template_name: "Feedback Request",
-            target_count: 800,
-            sent_count: 800,
-            delivered_count: 785,
-            read_count: 542,
-            scheduled_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-            created_by: "Lisa Chen",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
-        },
-        {
-            id: "4",
-            name: "Holiday Promotion",
-            description: "Special holiday offers and discounts",
-            status: "draft",
-            template_name: "Holiday Promo",
-            target_count: 3000,
-            sent_count: 0,
-            delivered_count: 0,
-            read_count: 0,
-            scheduled_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14), // In 2 weeks
-            created_by: "Alex Rodriguez",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
-        },
-        {
-            id: "5",
-            name: "Weekly Newsletter",
-            description: "Weekly updates and industry insights",
-            status: "paused",
-            template_name: "Newsletter Template",
-            target_count: 2000,
-            sent_count: 1200,
-            delivered_count: 1150,
-            read_count: 890,
-            scheduled_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-            created_by: "Emma Thompson",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
-        },
-    ]
-
-    // Simulate loading campaigns
+    // Callback-based refresh system - only refresh when there are running campaigns with recent activity
     useEffect(() => {
-        const loadCampaigns = async () => {
-            setCampaignsLoading(true)
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            setCampaigns(mockCampaigns)
-            setCampaignsLoading(false)
-        }
+        if (!autoRefresh || !campaigns || campaigns.length === 0) return
 
-        loadCampaigns()
-    }, [])
+        const runningCampaigns = campaigns.filter(c => c.status === 'running')
+
+        if (runningCampaigns.length > 0) {
+            // Check for recent analytics activity (within last 10 minutes)
+            const hasRecentActivity = runningCampaigns.some(campaign => {
+                if (!campaign.analytics_updated_at) return false
+                const updateTime = new Date(campaign.analytics_updated_at).getTime()
+                return (Date.now() - updateTime) < 10 * 60 * 1000
+            })
+
+            if (hasRecentActivity) {
+                const interval = setInterval(() => {
+                    refetch()
+                }, 45000) // Check every 45 seconds for webhook updates
+
+                return () => clearInterval(interval)
+            }
+        }
+    }, [autoRefresh, campaigns, refetch])
 
     // Manual refresh with loading state
     const handleManualRefresh = useCallback(async () => {
         setIsRefreshing(true)
         try {
-            // Simulate refresh delay
-            await new Promise(resolve => setTimeout(resolve, 800))
-            setCampaigns(mockCampaigns)
+            await refetch()
             toast.success("Campaigns data refreshed")
         } catch (error) {
             toast.error("Failed to refresh campaigns data")
         } finally {
             setIsRefreshing(false)
         }
-    }, [])
+    }, [refetch])
 
     const statusColors = {
         draft: "bg-gray-500",
@@ -146,6 +66,37 @@ export function CampaignOverviewOptimized() {
         paused: "bg-yellow-500",
         failed: "bg-red-500",
     }
+
+    const statusIcons = {
+        draft: Clock,
+        scheduled: Calendar,
+        running: Send,
+        completed: CheckCircle,
+        paused: AlertCircle,
+        failed: XCircle,
+    }
+
+    // Calculate enhanced analytics
+    const analytics = {
+        totalCampaigns: campaigns.length,
+        activeCampaigns: campaigns.filter(c => c.status === 'running').length,
+        completedCampaigns: campaigns.filter(c => c.status === 'completed').length,
+        totalRecipients: campaigns.reduce((sum, c) => sum + (c.target_count || 0), 0),
+        totalSent: campaigns.reduce((sum, c) => sum + (c.sent_count || 0), 0),
+        totalDelivered: campaigns.reduce((sum, c) => sum + (c.delivered_count || 0), 0),
+        totalRead: campaigns.reduce((sum, c) => sum + (c.read_count || 0), 0),
+        totalFailed: campaigns.reduce((sum, c) => sum + (c.failed_count || 0), 0),
+        // Use API-calculated rates if available
+        deliveryRate: campaigns.length > 0 ? Math.round((campaigns.reduce((sum, c) => sum + (c.delivery_rate || 0), 0)) / campaigns.length) : 0,
+        readRate: campaigns.length > 0 ? Math.round((campaigns.reduce((sum, c) => sum + (c.read_rate || 0), 0)) / campaigns.length) : 0,
+    }
+
+    // Calculate effective delivered count - if a message is read, it was logically delivered
+    const totalEffectiveDelivered = campaigns.reduce((sum, c) => sum + Math.max(c.delivered_count || 0, c.read_count || 0), 0)
+
+    // Prefer API-calculated rates if available, else fallback to manual calculation with effective delivered count
+    const deliveryRate = analytics.deliveryRate > 0 ? analytics.deliveryRate : (analytics.totalSent > 0 ? Math.round((totalEffectiveDelivered / analytics.totalSent) * 100) : 0)
+    const readRate = analytics.readRate > 0 ? analytics.readRate : (totalEffectiveDelivered > 0 ? Math.round((analytics.totalRead / totalEffectiveDelivered) * 100) : 0)
 
     // Loading state
     if (profileLoading || campaignsLoading) {
@@ -157,12 +108,15 @@ export function CampaignOverviewOptimized() {
                         <Skeleton className="h-8 w-48" />
                         <Skeleton className="h-4 w-64" />
                     </div>
-                    <Skeleton className="h-10 w-24" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-24" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
                 </div>
 
                 {/* Campaign Stats Skeleton */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[...Array(4)].map((_, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {[...Array(5)].map((_, i) => (
                         <Card key={i}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <Skeleton className="h-4 w-24" />
@@ -226,12 +180,12 @@ export function CampaignOverviewOptimized() {
     }
 
     // Error state
-    if (profileError) {
+    if (profileError || campaignsError) {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                    Failed to load campaigns: {profileError.message}
+                    Failed to load campaigns: {(profileError || campaignsError)?.message}
                 </AlertDescription>
             </Alert>
         )
@@ -265,71 +219,109 @@ export function CampaignOverviewOptimized() {
                                     : "View campaign performance and metrics"}
                     </p>
                 </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleManualRefresh}
-                    disabled={isRefreshing}
-                    className="flex items-center gap-2"
-                >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                    Refresh
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAutoRefresh(!autoRefresh)}
+                        className={`flex items-center gap-2 ${autoRefresh ? 'border-green-200' : ''}`}
+                    >
+                        <div className={`h-2 w-2 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        {autoRefresh ? (
+                            <span>Smart refresh {(() => {
+                                const runningCampaigns = campaigns.filter(c => c.status === 'running')
+                                if (runningCampaigns.length === 0) return '(idle)'
+
+                                const hasActivity = runningCampaigns.some(campaign => {
+                                    const sentCount = campaign.sent_count || 0
+                                    const deliveredCount = campaign.delivered_count || 0
+                                    const deliveryRate = sentCount > 0 ? (deliveredCount / sentCount) * 100 : 0
+                                    return sentCount > 0 && deliveryRate < 90
+                                })
+
+                                return hasActivity ? '(active)' : '(monitoring)'
+                            })()}</span>
+                        ) : (
+                            <span>Auto-refresh OFF</span>
+                        )}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleManualRefresh}
+                        disabled={isRefreshing}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </Button>
+                </div>
             </div>
 
-            {/* Campaign Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Enhanced Campaign Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Card className={isRefreshing ? "opacity-50" : ""}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
                         <Send className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{campaigns.length}</div>
+                        <div className="text-2xl font-bold">{analytics.totalCampaigns}</div>
                         <p className="text-xs text-muted-foreground">
-                            {campaigns.filter((c) => c.status === "running").length} active
+                            {analytics.activeCampaigns} running, {analytics.completedCampaigns} completed
                         </p>
                     </CardContent>
                 </Card>
-                
-                <Card className={isRefreshing ? "opacity-50" : ""}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Recipients</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {campaigns.reduce((sum, c) => sum + c.target_count, 0).toLocaleString()}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Across all campaigns</p>
-                    </CardContent>
-                </Card>
-                
+
                 <Card className={isRefreshing ? "opacity-50" : ""}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
                         <Send className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">
-                            {campaigns.reduce((sum, c) => sum + c.sent_count, 0).toLocaleString()}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Total delivered</p>
+                        <div className="text-2xl font-bold">{analytics.totalSent.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            of {analytics.totalRecipients.toLocaleString()} recipients
+                        </p>
                     </CardContent>
                 </Card>
-                
+
                 <Card className={isRefreshing ? "opacity-50" : ""}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">
-                            {campaigns.length > 0 
-                                ? Math.round((campaigns.reduce((sum, c) => sum + c.delivered_count, 0) / campaigns.reduce((sum, c) => sum + c.sent_count, 1)) * 100)
-                                : 0}%
-                        </div>
-                        <p className="text-xs text-muted-foreground">Delivery rate</p>
+                        <div className="text-2xl font-bold">{totalEffectiveDelivered.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {deliveryRate}% delivery rate
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card className={isRefreshing ? "opacity-50" : ""}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Read</CardTitle>
+                        <Eye className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{analytics.totalRead.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {readRate}% read rate
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card className={isRefreshing ? "opacity-50" : ""}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Failed</CardTitle>
+                        <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{analytics.totalFailed.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {analytics.totalSent > 0 ? Math.round((analytics.totalFailed / analytics.totalSent) * 100) : 0}% failure rate
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -340,7 +332,14 @@ export function CampaignOverviewOptimized() {
                     <div className="flex justify-between items-center">
                         <div>
                             <CardTitle>Recent Campaigns</CardTitle>
-                            <CardDescription>Overview of your latest campaign activities</CardDescription>
+                            <CardDescription>
+                                Overview of your latest campaign activities
+                                {analytics.activeCampaigns > 0 && (
+                                    <span className="ml-2 text-green-600">
+                                        • {analytics.activeCampaigns} campaign{analytics.activeCampaigns > 1 ? 's' : ''} running
+                                    </span>
+                                )}
+                            </CardDescription>
                         </div>
                         {hasPermission(profile.role, "manage_campaigns") && (
                             <Button asChild>
@@ -355,79 +354,112 @@ export function CampaignOverviewOptimized() {
                 <CardContent>
                     {campaigns.length === 0 ? (
                         <div className="text-center py-8">
-                            <p className="text-muted-foreground">No campaigns available.</p>
+                            <Send className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
+                            <p className="text-muted-foreground mb-4">
+                                Create your first campaign to start reaching your audience
+                            </p>
                             {hasPermission(profile.role, "manage_campaigns") && (
-                                <div className="mt-4">
-                                    <Button asChild>
-                                        <Link href="/dashboard/campaigns/create">
-                                            <Send className="h-4 w-4 mr-2" />
-                                            Create First Campaign
-                                        </Link>
-                                    </Button>
-                                </div>
+                                <Button asChild>
+                                    <Link href="/dashboard/campaigns/create">
+                                        <Send className="h-4 w-4 mr-2" />
+                                        Create Campaign
+                                    </Link>
+                                </Button>
                             )}
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {campaigns.map((campaign) => (
-                                <div key={campaign.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                                    <div className="space-y-1 flex-1">
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <h4 className="font-semibold">{campaign.name}</h4>
-                                            <Badge className={`${statusColors[campaign.status]} text-white w-fit`}>
-                                                {campaign.status}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">{campaign.description}</p>
-                                        <div className="flex flex-col sm:flex-row gap-4 text-xs text-muted-foreground">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="h-3 w-3" />
-                                                Created {campaign.created_at.toLocaleDateString()}
-                                            </span>
-                                            <span>Template: {campaign.template_name}</span>
-                                            <span>By: {campaign.created_by}</span>
-                                        </div>
-                                    </div>
+                            {campaigns.map((campaign) => {
+                                const StatusIcon = statusIcons[campaign.status]
+                                const progress = Math.round(((campaign.sent_count || 0) / Math.max(campaign.target_count || 1, 1)) * 100)
+                                // Calculate effective delivered count - if a message is read, it was logically delivered
+                                const effectiveDeliveredCount = Math.max(campaign.delivered_count || 0, campaign.read_count || 0)
+                                const cardDeliveryRate = typeof campaign.delivery_rate === 'number' && campaign.delivery_rate > 0
+                                    ? Math.round(campaign.delivery_rate)
+                                    : (campaign.sent_count || 0) > 0
+                                        ? Math.round((effectiveDeliveredCount / (campaign.sent_count || 1)) * 100)
+                                        : 0
+                                const cardReadRate = typeof campaign.read_rate === 'number' && campaign.read_rate > 0
+                                    ? Math.round(campaign.read_rate)
+                                    : effectiveDeliveredCount > 0
+                                        ? Math.round(((campaign.read_count || 0) / effectiveDeliveredCount) * 100)
+                                        : 0
 
-                                    <div className="space-y-2 min-w-0 sm:w-64">
-                                        <div className="flex justify-between text-sm">
-                                            <span>Progress</span>
-                                            <span>{Math.round((campaign.sent_count / campaign.target_count) * 100)}%</span>
+                                return (
+                                    <div key={campaign.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                        <div className="space-y-2 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-semibold text-base truncate">{campaign.name}</h3>
+                                                <Badge variant="secondary" className={`${statusColors[campaign.status]} text-white flex items-center gap-1`}>
+                                                    <StatusIcon className="h-3 w-3" />
+                                                    {campaign.status}
+                                                </Badge>
+                                                {campaign.status === 'running' && (
+                                                    <div className="flex items-center gap-1 text-green-600">
+                                                        <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                                                        <span className="text-xs">Live</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground truncate">{campaign.description}</p>
+                                            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                                                <span className="flex items-center gap-1">
+                                                    <Users className="h-3 w-3" />
+                                                    {(campaign.target_count || 0).toLocaleString()} recipients
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Send className="h-3 w-3" />
+                                                    {(campaign.sent_count || 0).toLocaleString()} sent
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <CheckCircle className="h-3 w-3" />
+                                                    {cardDeliveryRate}% delivered
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Eye className="h-3 w-3" />
+                                                    {cardReadRate}% read
+                                                </span>
+                                                {(campaign.failed_count || 0) > 0 && (
+                                                    <span className="flex items-center gap-1 text-red-600">
+                                                        <XCircle className="h-3 w-3" />
+                                                        {campaign.failed_count || 0} failed
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <Progress value={(campaign.sent_count / campaign.target_count) * 100} className="w-full" />
-                                        <div className="flex justify-between text-xs text-muted-foreground">
-                                            <span>{campaign.sent_count.toLocaleString()} sent</span>
-                                            <span>{campaign.target_count.toLocaleString()} total</span>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/dashboard/campaigns/${campaign.id}`}>
-                                                <ExternalLink className="h-4 w-4 mr-2" />
-                                                View
-                                            </Link>
-                                        </Button>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem>Edit Campaign</DropdownMenuItem>
-                                                <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                                <DropdownMenuItem>View Analytics</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <div className="space-y-3 min-w-0 sm:w-64">
+                                            {/* Sent Progress */}
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between text-sm">
+                                                    <span>Sent</span>
+                                                    <span>{progress}%</span>
+                                                </div>
+                                                <Progress value={progress} className="w-full" />
+                                                <div className="flex justify-between text-xs text-muted-foreground">
+                                                    <span>{(campaign.sent_count || 0).toLocaleString()} sent</span>
+                                                    <span>{(campaign.target_count || 0).toLocaleString()} total</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link href={`/dashboard/campaigns/${campaign.id}`}>
+                                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                                    View Details
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     )}
                 </CardContent>
             </Card>
+
         </div>
     )
 }

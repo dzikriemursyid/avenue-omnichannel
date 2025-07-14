@@ -12,7 +12,8 @@ export const twilioClient = twilio(accountSid, authToken);
 // WhatsApp message configuration
 export const whatsappConfig = {
   from: fromNumber,
-  statusCallback: process.env.TWILIO_WEBHOOK_URL || "https://webhook.dzynthesis.dev/webhook/twilio/status",
+  // Always use the public webhook URL - Twilio needs a publicly accessible URL
+  statusCallback: process.env.TWILIO_WEBHOOK_URL || "https://webhook.dzynthesis.dev/api/webhooks/twilio",
 };
 
 // Message status mapping

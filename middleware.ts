@@ -5,15 +5,20 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Handle Supabase auth first
-  const response = await updateSession(request);
-
-  // Skip role-based routing for auth pages and API routes
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  // Skip ALL middleware processing for API routes (including webhooks)
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isPublicRoute = request.nextUrl.pathname === "/" || request.nextUrl.pathname.startsWith("/public");
 
-  if (isAuthPage || isApiRoute || isPublicRoute) {
+  if (isApiRoute) {
+    // Skip all auth processing for API routes
+    return NextResponse.next();
+  }
+
+  // Handle Supabase auth for non-API routes
+  const response = await updateSession(request);
+
+  if (isAuthPage || isPublicRoute) {
     return response;
   }
 

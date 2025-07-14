@@ -1,6 +1,6 @@
 // Campaign Sender Service
 import { twilioClient, whatsappConfig, formatWhatsAppNumber, personalizeTemplate } from "./client";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin.server";
 
 interface SendCampaignOptions {
   campaignId: string;
@@ -18,6 +18,7 @@ interface Contact {
 
 interface Template {
   id: string;
+  name: string;
   template_id: string; // Twilio Content SID
   variables: string[];
 }
@@ -33,7 +34,7 @@ export class CampaignSender {
   private supabase: any;
 
   async init() {
-    this.supabase = await createClient();
+    this.supabase = createAdminClient();
   }
 
   async sendCampaign({ campaignId, batchSize = 50, delayBetweenBatches = 1000 }: SendCampaignOptions) {
@@ -110,14 +111,14 @@ export class CampaignSender {
   }
 
   private async getCampaignContacts(campaignId: string): Promise<Contact[]> {
-    // Get campaign target segments
+    // Get campaign target segments (contact groups)
     const { data: campaign } = await this.supabase.from("campaigns").select("target_segments").eq("id", campaignId).single();
 
     if (!campaign || !campaign.target_segments || campaign.target_segments.length === 0) {
       return [];
     }
 
-    // Get contacts from segments
+    // Get contacts from contact groups
     const { data: contacts, error } = await this.supabase
       .from("contacts")
       .select(
@@ -126,11 +127,10 @@ export class CampaignSender {
         phone_number,
         name,
         email,
-        custom_fields,
-        contact_segment_members!inner(segment_id)
+        custom_fields
       `
       )
-      .in("contact_segment_members.segment_id", campaign.target_segments);
+      .in("group_id", campaign.target_segments);
 
     if (error) {
       console.error("Error fetching contacts:", error);
@@ -184,12 +184,25 @@ export class CampaignSender {
       const contentVariables = personalizeTemplate(template.variables, templateData);
 
       // Send via Twilio
-      const message = await twilioClient.messages.create({
+      console.log("🔗 Sending message with webhook URL:", whatsappConfig.statusCallback);
+      const messageParams = {
         contentSid: template.template_id,
         contentVariables: JSON.stringify(contentVariables),
         from: whatsappConfig.from,
         to: formatWhatsAppNumber(contact.phone_number),
         statusCallback: whatsappConfig.statusCallback,
+        // Force status callbacks for WhatsApp
+        statusCallbackMethod: 'POST',
+      };
+      
+      console.log("📤 Sending WhatsApp message with params:", messageParams);
+      const message = await twilioClient.messages.create(messageParams);
+      
+      console.log("📤 Message sent successfully:", {
+        sid: message.sid,
+        status: message.status,
+        to: message.to,
+        statusCallback: whatsappConfig.statusCallback
       });
 
       // Record in campaign_messages
@@ -204,15 +217,23 @@ export class CampaignSender {
   }
 
   private async recordMessage(campaignId: string, contactId: string, messageSid: string, templateData: Record<string, string>) {
-    await this.supabase.from("campaign_messages").insert({
+    const phoneNumberData = await this.supabase.from("contacts").select("phone_number").eq("id", contactId).single();
+    
+    const messageData = {
       campaign_id: campaignId,
       contact_id: contactId,
       message_sid: messageSid,
-      phone_number: (await this.supabase.from("contacts").select("phone_number").eq("id", contactId).single()).data?.phone_number,
+      phone_number: phoneNumberData.data?.phone_number,
       template_data: templateData,
       status: "sent",
       sent_at: new Date().toISOString(),
-    });
+    };
+
+    const { data: insertedMessage, error } = await this.supabase.from("campaign_messages").insert(messageData).select();
+    
+    if (error) {
+      console.error("❌ Error recording message:", error);
+    }
   }
 
   private async recordFailedMessage(campaignId: string, contactId: string, error: any) {
@@ -236,6 +257,8 @@ export class CampaignSender {
       total_sent: results.sent,
       total_failed: results.failed,
       updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'campaign_id'
     });
   }
 }

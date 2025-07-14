@@ -15,12 +15,36 @@ export interface Campaign {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Template info
+  message_templates?: {
+    id: string;
+    name: string;
+    category: string;
+    status: string;
+  };
+  // Creator info
+  profiles?: {
+    id: string;
+    name: string;
+  };
   // Analytics
+  campaign_analytics?: {
+    total_sent: number;
+    total_delivered: number;
+    total_read: number;
+    total_failed: number;
+    delivery_rate: number;
+    read_rate: number;
+  };
+  // Legacy fields for compatibility
   target_count?: number;
   sent_count?: number;
   delivered_count?: number;
   read_count?: number;
   failed_count?: number;
+  delivery_rate?: number;
+  read_rate?: number;
+  analytics_updated_at?: string;
 }
 
 export interface SendCampaignRequest {
@@ -36,10 +60,21 @@ export interface SendCampaignResponse {
   campaignId: string;
 }
 
+export interface CampaignsListResponse {
+  campaigns: Campaign[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
 export const campaignApi = {
   // List campaigns
   list: async (params?: { page?: number; limit?: number; status?: string }) => {
-    return apiClient.get<Campaign[]>("/dashboard/campaigns", params);
+    return apiClient.get<CampaignsListResponse>("/dashboard/campaigns", params);
   },
 
   // Get single campaign

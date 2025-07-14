@@ -49,12 +49,13 @@ class ApiClient {
       }
 
       if (!response.ok) {
+        console.error("❌ API Error Response:", data);
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
       return data as ApiResponse<T>;
     } catch (error) {
-      console.error("API request failed:", error);
+      console.error("❌ API request failed:", error);
       throw error;
     }
   }

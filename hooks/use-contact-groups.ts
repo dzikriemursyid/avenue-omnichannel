@@ -1,10 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { contactGroupsApi } from "@/lib/api/contact-groups";
 import { useApi } from "@/hooks/use-api";
 import type { ContactGroup } from "@/lib/api/contact-groups";
 
 export const useContactGroups = () => {
-  const { data, loading, error, execute } = useApi(contactGroupsApi.list);
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return contactGroupsApi.list;
+  }, []);
+
+  const { data, loading, error, execute } = useApi(apiFunction);
   const [groups, setGroups] = useState<ContactGroup[]>([]);
 
   useEffect(() => {
@@ -32,14 +37,19 @@ export const useContactGroups = () => {
 };
 
 export const useContactGroup = (id: string) => {
-  const { data, loading, error, execute } = useApi(contactGroupsApi.get);
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return contactGroupsApi.get;
+  }, []);
+
+  const { data, loading, error, execute } = useApi(apiFunction);
   const [group, setGroup] = useState<ContactGroup | null>(null);
 
   useEffect(() => {
     if (id) {
       execute(id);
     }
-  }, [id, execute]);
+  }, [execute]);
 
   useEffect(() => {
     if (data) {
@@ -62,7 +72,12 @@ export const useContactGroup = (id: string) => {
 };
 
 export const useContactGroupContacts = (groupId: string, params?: { search?: string; page?: number; limit?: number }) => {
-  const { data, loading, error, execute } = useApi(contactGroupsApi.getContactsByGroup);
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return contactGroupsApi.getContactsByGroup;
+  }, []);
+
+  const { data, loading, error, execute } = useApi(apiFunction);
   const [contacts, setContacts] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
 
@@ -80,7 +95,7 @@ export const useContactGroupContacts = (groupId: string, params?: { search?: str
       };
       execute(groupId, apiParams);
     }
-  }, [groupId, execute, searchValue, pageValue, limitValue]);
+  }, [execute, searchValue, pageValue, limitValue]);
 
   useEffect(() => {
     if (data) {

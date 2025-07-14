@@ -1,15 +1,26 @@
 // Campaign Management Hooks
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "./use-api";
 import { campaignApi, SendCampaignRequest } from "@/lib/api/campaigns";
 import { useToast } from "@/components/ui/use-toast";
 
 // Hook for listing campaigns
 export function useCampaigns(params?: { page?: number; limit?: number; status?: string }) {
-  const { data, error, loading, execute } = useApi(() => campaignApi.list(params));
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return () => campaignApi.list(params);
+  }, [params?.page, params?.limit, params?.status]);
+
+  const { data, error, loading, execute } = useApi(apiFunction);
+
+  // Auto-fetch data on mount and when params change
+  useEffect(() => {
+    execute();
+  }, [execute]);
 
   return {
-    campaigns: data || [],
+    campaigns: data?.campaigns || [],
+    pagination: data?.pagination || null,
     error,
     loading,
     refetch: execute,
@@ -18,7 +29,19 @@ export function useCampaigns(params?: { page?: number; limit?: number; status?: 
 
 // Hook for getting single campaign
 export function useCampaign(id: string) {
-  const { data, error, loading, execute } = useApi(() => campaignApi.get(id));
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return () => campaignApi.get(id);
+  }, [id]);
+
+  const { data, error, loading, execute } = useApi(apiFunction);
+
+  // Auto-fetch data on mount and when id changes
+  useEffect(() => {
+    if (id) {
+      execute();
+    }
+  }, [execute]);
 
   return {
     campaign: data,

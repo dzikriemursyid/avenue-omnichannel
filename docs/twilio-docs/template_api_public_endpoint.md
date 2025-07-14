@@ -904,6 +904,7 @@ Status callback URLs can be set for all messages in a Messaging Service
 
 Copy code block
 -d "StatusCallback=http://postb.in/1234abcd" \
+
 Send messages scheduled ahead of time
 
 With content templates, you can schedule SMS, MMS, and WhatsApp messages to be sent at a fixed time in the future.

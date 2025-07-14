@@ -1,10 +1,15 @@
 // Profile Management Hooks
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useApi } from "./use-api";
 import { profileApi, UpdateProfileRequest } from "@/lib/api";
 
 export function useProfile() {
-  const { data, error, loading, execute } = useApi(profileApi.get);
+  // Memoize the API function to prevent recreation on every render
+  const apiFunction = useMemo(() => {
+    return profileApi.get;
+  }, []);
+
+  const { data, error, loading, execute } = useApi(apiFunction);
 
   useEffect(() => {
     execute();
