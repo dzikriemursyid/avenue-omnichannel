@@ -16,6 +16,7 @@ export interface CreateTemplateRequest {
 
 export interface SyncTemplatesResponse {
   synced: number;
+  deleted: number;
   errors: string[];
   message: string;
 }

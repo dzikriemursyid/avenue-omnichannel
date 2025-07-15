@@ -47,11 +47,39 @@ export function formatWhatsAppNumber(phoneNumber: string): string {
 export function personalizeTemplate(variables: string[], data: Record<string, any>): Record<string, string> {
   const personalized: Record<string, string> = {};
 
+
   variables.forEach((variable, index) => {
     // Variables are 1-indexed in WhatsApp templates
     const key = (index + 1).toString();
-    personalized[key] = data[variable] || "";
+    const value = data[variable] || "";
+
+    personalized[key] = value;
+
   });
 
   return personalized;
+}
+
+// Helper function to get template variable mapping for display purposes
+export function getTemplateVariableMapping(variables: string[]): Record<string, number> {
+  const mapping: Record<string, number> = {};
+
+  variables.forEach((variable, index) => {
+    mapping[variable] = index + 1;
+  });
+
+  return mapping;
+}
+
+// Helper function to validate template variables
+export function validateTemplateVariables(variables: string[], data: Record<string, any>): string[] {
+  const missingVariables: string[] = [];
+
+  variables.forEach((variable) => {
+    if (!data[variable] || data[variable].toString().trim() === "") {
+      missingVariables.push(variable);
+    }
+  });
+
+  return missingVariables;
 }

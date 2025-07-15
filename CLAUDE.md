@@ -118,3 +118,12 @@ The application uses multiple API patterns:
 - Lazy loading hooks in `hooks/use-lazy-load.ts`
 - Debounced callbacks in `hooks/use-debounce.ts`
 - Optimized components with `-optimized` suffix
+
+### Database Management
+- Usually use remote Supabase for databases, simple back-end, and auth
+- To add tables, policies, or columns, write SQL code in supabase/migrations folder for execution
+
+## Project Guidelines
+
+### Package Management
+- Always use pnpm instead of npm

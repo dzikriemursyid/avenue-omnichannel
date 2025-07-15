@@ -35,11 +35,174 @@ export function CampaignCreateOptimized() {
         scheduleType: "immediate", // "immediate" or "scheduled"
         scheduledDate: "",
         scheduledTime: "",
+        templateVariables: {} as Record<string, string>, // Dynamic template variables
+        variableSource: "manual" as "manual" | "contact", // Source for contact-related variables
     })
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
+
+    const handleTemplateVariableChange = (variableName: string, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            templateVariables: {
+                ...prev.templateVariables,
+                [variableName]: value
+            }
+        }))
+    }
+
+    // Get selected template for variables
+    const selectedTemplate = templates.find(t => t.id === formData.templateId)
+
+    // Get selected audience for contact data
+    const selectedAudience = contactGroups.find(g => g.id === formData.audienceId)
+
+    // State for contact data
+    const [contactData, setContactData] = useState<any[]>([])
+    const [loadingContacts, setLoadingContacts] = useState(false)
+
+    // Function to fetch contact data from selected audience
+    const fetchContactData = useCallback(async () => {
+        if (!selectedAudience || selectedAudience.contact_count === 0) {
+            setContactData([])
+            return
+        }
+
+        setLoadingContacts(true)
+        try {
+            const response = await fetch(`/api/dashboard/contact-groups/${selectedAudience.id}/contacts?limit=5`)
+            if (response.ok) {
+                const data = await response.json()
+                setContactData(data.data.contacts || [])
+            } else {
+                console.error('Failed to fetch contact data')
+                setContactData([])
+            }
+        } catch (error) {
+            console.error('Error fetching contact data:', error)
+            setContactData([])
+        } finally {
+            setLoadingContacts(false)
+        }
+    }, [selectedAudience])
+
+    // Fetch contact data when audience changes
+    useEffect(() => {
+        if (selectedAudience && formData.variableSource === "contact") {
+            fetchContactData()
+        }
+    }, [selectedAudience, formData.variableSource, fetchContactData])
+
+    // Function to get sample contact data from selected audience
+    const getSampleContactData = useCallback(() => {
+        if (!selectedAudience || selectedAudience.contact_count === 0) {
+            return null
+        }
+
+        // Use actual contact data if available, otherwise return sample
+        if (contactData.length > 0) {
+            return contactData[0]
+        }
+
+        // Fallback sample data
+        return {
+            name: "John Doe",
+            email: "john.doe@example.com",
+            phone_number: "+6281234567890",
+            company_name: "Sample Company",
+            // Add more sample data as needed
+        }
+    }, [selectedAudience, contactData])
+
+    // Function to auto-fill contact-related variables
+    const autoFillContactVariables = useCallback(() => {
+        if (!selectedTemplate?.variables || !selectedAudience) return
+
+        const sampleContact = getSampleContactData()
+        if (!sampleContact) return
+
+        const contactVariableMappings: Record<string, string> = {
+            'name': sampleContact.name, // Always use full name for name variable
+            'first_name': sampleContact.name.split(' ')[0],
+            'last_name': sampleContact.name.split(' ').slice(1).join(' '),
+            'email': sampleContact.email,
+            'phone': sampleContact.phone_number,
+            'phone_number': sampleContact.phone_number,
+            'company_name': sampleContact.company_name,
+            'company': sampleContact.company_name,
+        }
+
+        const newVariables = { ...formData.templateVariables }
+        let filledCount = 0
+
+        selectedTemplate.variables.forEach(variable => {
+            const lowerVariable = variable.toLowerCase()
+            if (contactVariableMappings[lowerVariable] && !newVariables[variable]) {
+                newVariables[variable] = contactVariableMappings[lowerVariable]
+                filledCount++
+            }
+        })
+
+        if (filledCount > 0) {
+            setFormData(prev => ({
+                ...prev,
+                templateVariables: newVariables
+            }))
+            toast.success(`Auto-filled ${filledCount} contact-related variable(s)`)
+        } else {
+            toast.info("No contact-related variables found to auto-fill")
+        }
+    }, [selectedTemplate, selectedAudience, formData.templateVariables, getSampleContactData])
+
+    // Validation function to check if form is complete
+    const isFormValid = useCallback(() => {
+        // Check required basic fields
+        if (!formData.name.trim()) return false
+        if (!formData.templateId) return false
+        if (!formData.audienceId) return false
+        
+        // Check selected template exists and is approved
+        if (!selectedTemplate || selectedTemplate.status !== 'approved') return false
+        
+        // Check selected audience exists and has contacts
+        if (!selectedAudience || selectedAudience.contact_count === 0) return false
+        
+        // Check scheduled campaign fields
+        if (formData.scheduleType === "scheduled") {
+            if (!formData.scheduledDate || !formData.scheduledTime) return false
+            
+            const scheduledDateTime = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`)
+            const now = new Date()
+            
+            if (scheduledDateTime <= now) return false
+        }
+        
+        // Check template variables
+        if (selectedTemplate.variables && selectedTemplate.variables.length > 0) {
+            if (formData.variableSource === "manual") {
+                // For manual input, all variables must be filled
+                const missingVariables = selectedTemplate.variables.filter(
+                    variable => !formData.templateVariables[variable] || formData.templateVariables[variable].trim() === ""
+                )
+                if (missingVariables.length > 0) return false
+            } else {
+                // For contact data, only non-contact variables must be filled
+                const contactVariables = ['name', 'first_name', 'last_name', 'email', 'phone', 'phone_number', 'company_name', 'company']
+                const nonContactVariables = selectedTemplate.variables.filter(
+                    variable => !contactVariables.includes(variable.toLowerCase())
+                )
+                
+                const missingNonContactVariables = nonContactVariables.filter(
+                    variable => !formData.templateVariables[variable] || formData.templateVariables[variable].trim() === ""
+                )
+                if (missingNonContactVariables.length > 0) return false
+            }
+        }
+        
+        return true
+    }, [formData, selectedTemplate, selectedAudience])
 
     const handleCreateCampaign = useCallback(async () => {
         // Validation
@@ -74,6 +237,58 @@ export function CampaignCreateOptimized() {
             }
         }
 
+        // Additional validation for template and audience
+        if (!selectedTemplate) {
+            toast.error("Please select a valid template")
+            return
+        }
+
+        if (selectedTemplate.status !== 'approved') {
+            toast.error("Please select an approved template")
+            return
+        }
+
+        const selectedAudience = contactGroups.find(g => g.id === formData.audienceId)
+        if (!selectedAudience) {
+            toast.error("Please select a valid audience")
+            return
+        }
+
+        if (selectedAudience.contact_count === 0) {
+            toast.error("Selected audience has no contacts. Please choose an audience with contacts.")
+            return
+        }
+
+        // Validate template variables
+        if (selectedTemplate.variables && selectedTemplate.variables.length > 0) {
+            if (formData.variableSource === "manual") {
+                // For manual input, all variables must be filled
+                const missingVariables = selectedTemplate.variables.filter(
+                    variable => !formData.templateVariables[variable] || formData.templateVariables[variable].trim() === ""
+                )
+
+                if (missingVariables.length > 0) {
+                    toast.error(`Please fill in all template variables: ${missingVariables.map(v => `{{${v}}}`).join(", ")}`)
+                    return
+                }
+            } else {
+                // For contact data, only non-contact variables must be filled
+                const contactVariables = ['name', 'first_name', 'last_name', 'email', 'phone', 'phone_number', 'company_name', 'company']
+                const nonContactVariables = selectedTemplate.variables.filter(
+                    variable => !contactVariables.includes(variable.toLowerCase())
+                )
+
+                const missingNonContactVariables = nonContactVariables.filter(
+                    variable => !formData.templateVariables[variable] || formData.templateVariables[variable].trim() === ""
+                )
+
+                if (missingNonContactVariables.length > 0) {
+                    toast.error(`Please fill in non-contact variables: ${missingNonContactVariables.map(v => `{{${v}}}`).join(", ")}`)
+                    return
+                }
+            }
+        }
+
         try {
             // Prepare campaign data
             const campaignData = {
@@ -85,6 +300,10 @@ export function CampaignCreateOptimized() {
                 scheduled_at: formData.scheduleType === "scheduled"
                     ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
                     : undefined,
+                template_variables: selectedTemplate.variables && selectedTemplate.variables.length > 0
+                    ? formData.templateVariables
+                    : undefined,
+                variable_source: formData.variableSource, // Add variable source information
             }
 
             // Create campaign
@@ -101,18 +320,26 @@ export function CampaignCreateOptimized() {
         } catch (error: any) {
             console.error("Campaign creation error:", error)
 
-            // Handle specific error cases
+            // Handle specific error cases with more descriptive messages
             if (error.message?.includes("Template not found")) {
                 toast.error("Selected template not found. Please choose another template.")
             } else if (error.message?.includes("Contact group not found")) {
                 toast.error("Selected audience not found. Please choose another audience.")
             } else if (error.message?.includes("Template must be approved")) {
                 toast.error("Selected template is not approved. Please choose an approved template.")
+            } else if (error.message?.includes("Insufficient permissions")) {
+                toast.error("You don't have permission to create campaigns. Please contact your administrator.")
+            } else if (error.message?.includes("Invalid template ID")) {
+                toast.error("Invalid template selected. Please choose a valid template.")
+            } else if (error.message?.includes("Invalid audience ID")) {
+                toast.error("Invalid audience selected. Please choose a valid contact group.")
+            } else if (error.message?.includes("Scheduled time must be in the future")) {
+                toast.error("Scheduled time must be in the future.")
             } else {
                 toast.error(error.message || "Failed to create campaign. Please try again.")
             }
         }
-    }, [formData, createCampaign, router])
+    }, [formData, createCampaign, router, templates, contactGroups, selectedTemplate, isFormValid])
 
     // Loading state
     if (profileLoading || templatesLoading || groupsLoading) {
@@ -289,9 +516,6 @@ export function CampaignCreateOptimized() {
                                                 <MessageSquare className="h-4 w-4" />
                                                 <div className="flex flex-col">
                                                     <span className="font-medium">{template.name}</span>
-                                                    <span className="text-xs text-muted-foreground capitalize">
-                                                        {template.category} • {template.status}
-                                                    </span>
                                                 </div>
                                             </div>
                                         </SelectItem>
@@ -302,7 +526,6 @@ export function CampaignCreateOptimized() {
                             {formData.templateId && (
                                 <div className="mt-3">
                                     {(() => {
-                                        const selectedTemplate = templates.find(t => t.id === formData.templateId)
                                         if (!selectedTemplate) return null
                                         return (
                                             <Card className="bg-muted/50">
@@ -339,6 +562,21 @@ export function CampaignCreateOptimized() {
                                                             </div>
                                                         </div>
                                                     )}
+
+                                                    {/* Template Preview with Variables */}
+                                                    {selectedTemplate.variables && selectedTemplate.variables.length > 0 && (
+                                                        <div className="mt-4">
+                                                            <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+                                                            <div className="bg-background p-3 rounded border">
+                                                                <p className="text-sm">
+                                                                    {selectedTemplate.variables.reduce((preview, variable) => {
+                                                                        const value = formData.templateVariables[variable] || `{{${variable}}}`;
+                                                                        return preview.replace(new RegExp(`{{${variable}}}`, 'g'), value);
+                                                                    }, selectedTemplate.body_text)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </CardContent>
                                             </Card>
                                         )
@@ -347,6 +585,138 @@ export function CampaignCreateOptimized() {
                             )}
                         </div>
                     </div>
+
+                    {/* Template Variables */}
+                    {selectedTemplate && selectedTemplate.variables && selectedTemplate.variables.length > 0 && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold">Template Variables</h3>
+                                {selectedAudience && selectedAudience.contact_count > 0 && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={autoFillContactVariables}
+                                        disabled={creating}
+                                        className="text-xs"
+                                    >
+                                        <Users className="h-3 w-3 mr-1" />
+                                        Auto-fill from Contacts
+                                    </Button>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-4">
+                                    <RadioGroup
+                                        value={formData.variableSource}
+                                        onValueChange={(value) => setFormData(prev => ({ ...prev, variableSource: value as "manual" | "contact" }))}
+                                        disabled={creating}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="manual" id="manual" />
+                                            <Label htmlFor="manual" className="text-sm">Manual Input</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="contact" id="contact" />
+                                            <Label htmlFor="contact" className="text-sm">Use Contact Data</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+
+                                {formData.variableSource === "contact" && (
+                                    <div className="space-y-3">
+                                        <Alert>
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertDescription>
+                                                Variables will be automatically filled from each contact's data when sending messages.
+                                                You can still provide fallback values below for contacts without complete data.
+                                            </AlertDescription>
+                                        </Alert>
+
+                                        {loadingContacts ? (
+                                            <div className="text-sm text-muted-foreground">
+                                                Loading contact data...
+                                            </div>
+                                        ) : contactData.length > 0 ? (
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-medium">Sample contact data from audience:</p>
+                                                <div className="bg-muted/50 p-3 rounded border">
+                                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                                        <div><span className="font-medium">Name:</span> {contactData[0].name}</div>
+                                                        <div><span className="font-medium">Email:</span> {contactData[0].email || 'Not available'}</div>
+                                                        <div><span className="font-medium">Phone:</span> {contactData[0].phone_number}</div>
+                                                        <div><span className="font-medium">Company:</span> {contactData[0].company_name || 'Not available'}</div>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground mt-2">
+                                                        Showing sample from {contactData.length} contacts. Variables will be personalized for each contact.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : selectedAudience && selectedAudience.contact_count > 0 ? (
+                                            <div className="text-sm text-muted-foreground">
+                                                No contact data available. Please check your contact group.
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                )}
+
+                                <p className="text-sm text-muted-foreground">
+                                    {formData.variableSource === "manual"
+                                        ? "Enter values for the variables in your selected template. These values will be used for all contacts in this campaign."
+                                        : "Provide fallback values for variables. These will be used if a contact doesn't have the required data."
+                                    }
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {selectedTemplate.variables.map((variable) => {
+                                    const isContactVariable = ['name', 'first_name', 'last_name', 'email', 'phone', 'phone_number', 'company_name', 'company'].includes(variable.toLowerCase())
+
+                                    return (
+                                        <div key={variable} className="space-y-2">
+                                            <Label htmlFor={`var-${variable}`}>
+                                                {`{{${variable}}}`}
+                                                <span className="text-xs text-muted-foreground ml-1">
+                                                    {variable === 'name' && '(Contact name)'}
+                                                    {variable === 'first_name' && '(First name)'}
+                                                    {variable === 'last_name' && '(Last name)'}
+                                                    {variable === 'email' && '(Contact email)'}
+                                                    {variable === 'phone' && '(Phone number)'}
+                                                    {variable === 'phone_number' && '(Phone number)'}
+                                                    {variable === 'company_name' && '(Company name)'}
+                                                    {variable === 'company' && '(Company name)'}
+                                                    {variable === 'discount_code' && '(Promo code)'}
+                                                    {variable === 'discount_percentage' && '(Discount %)'}
+                                                    {variable === 'expiry_date' && '(Expiry date)'}
+                                                    {variable === 'product_name' && '(Product name)'}
+                                                    {variable === 'price' && '(Price)'}
+                                                    {variable === 'order_id' && '(Order ID)'}
+                                                    {variable === 'tracking_number' && '(Tracking number)'}
+                                                </span>
+                                                {formData.variableSource === "contact" && isContactVariable && (
+                                                    <Badge variant="secondary" className="ml-2 text-xs">
+                                                        From Contact
+                                                    </Badge>
+                                                )}
+                                            </Label>
+                                            <Input
+                                                id={`var-${variable}`}
+                                                value={formData.templateVariables[variable] || ""}
+                                                onChange={(e) => handleTemplateVariableChange(variable, e.target.value)}
+                                                placeholder={
+                                                    formData.variableSource === "contact" && isContactVariable
+                                                        ? `Fallback for ${variable}`
+                                                        : `Enter value for ${variable}`
+                                                }
+                                                disabled={creating}
+                                            />
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Audience Selection */}
                     <div className="space-y-4">
@@ -463,7 +833,7 @@ export function CampaignCreateOptimized() {
                                 Cancel
                             </Link>
                         </Button>
-                        <Button onClick={handleCreateCampaign} disabled={creating}>
+                        <Button onClick={handleCreateCampaign} disabled={creating || !isFormValid()}>
                             {creating ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />

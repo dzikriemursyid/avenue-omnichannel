@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       const templateService = new TemplateService();
       const result = await templateService.syncTemplatesFromTwilio(req.user.id);
 
-      const message = `Successfully synced ${result.synced} templates${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ""}`;
+      const message = `Successfully synced ${result.synced} templates${result.deleted > 0 ? `, deleted ${result.deleted} templates` : ""}${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ""}`;
 
       return NextResponse.json(
         successResponse(message, {

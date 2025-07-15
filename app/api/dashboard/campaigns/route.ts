@@ -21,6 +21,8 @@ const createCampaignSchema = z.object({
     errorMap: () => ({ message: "Schedule type must be 'immediate' or 'scheduled'" }),
   }),
   scheduled_at: z.string().datetime().optional(),
+  template_variables: z.record(z.string()).optional(), // Dynamic template variables
+  variable_source: z.enum(["manual", "contact"]).optional().default("manual"), // Source for contact-related variables
 });
 
 // GET /api/dashboard/campaigns - List campaigns
@@ -118,7 +120,7 @@ export async function GET(request: NextRequest) {
           // Get analytics data - handle both array and object formats
           const analytics = (campaign as any).campaign_analytics;
           const analyticsData = Array.isArray(analytics) ? analytics[0] : analytics;
-          
+
           const enhanced = {
             ...campaign,
             target_count: targetCount,
@@ -205,6 +207,8 @@ export async function POST(request: NextRequest) {
         scheduled_at: validatedData.scheduled_at || null,
         status: validatedData.schedule_type === "immediate" ? "draft" : "scheduled",
         created_by: req.user!.id,
+        template_variables: validatedData.template_variables || {},
+        variable_source: validatedData.variable_source || "manual", // Store variable source
       };
 
       // Create campaign
