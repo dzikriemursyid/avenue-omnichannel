@@ -6,8 +6,9 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Avenue Developments",
-  description: "Avenue Developments Omnichannel",
-  generator: "avenue-omnichannel"
+  description: "Avenue Developments Internal System",
+  generator: "avenue-developments",
+  icons: '/images/logo-avenue.png'
 }
 
 export default function RootLayout({

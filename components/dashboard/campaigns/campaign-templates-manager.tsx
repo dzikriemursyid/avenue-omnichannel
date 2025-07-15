@@ -120,14 +120,14 @@ function TemplateEmptyState({
                         {syncing ? 'Syncing...' : 'Sync from WhatsApp'}
                     </Button>
                 )}
-                {canManage && (
+                {/* {canManage && (
                     <Button asChild>
                         <Link href="/dashboard/templates/create">
                             <Plus className="h-4 w-4 mr-2" />
                             New Template
                         </Link>
                     </Button>
-                )}
+                )} */}
             </div>
         </div>
     );
@@ -390,12 +390,12 @@ export function TemplatesManager() {
                                 <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
                                 {syncing ? 'Syncing...' : 'Sync from WhatsApp'}
                             </Button>
-                            <Button asChild className="transition-colors">
+                            {/* <Button asChild className="transition-colors">
                                 <Link href="/dashboard/templates/create">
                                     <Plus className="h-4 w-4 mr-2" />
                                     New Template
                                 </Link>
-                            </Button>
+                            </Button> */}
                         </>
                     )}
                 </div>

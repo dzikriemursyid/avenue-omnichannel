@@ -153,7 +153,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             className="h-8 w-8 object-contain"
           />
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Omnichannel CRM</span>
+            <span className="truncate font-semibold">Avenue Developments</span>
             <span className="truncate text-xs text-muted-foreground">{user.role.replace("_", " ").toUpperCase()}</span>
           </div>
         </div>

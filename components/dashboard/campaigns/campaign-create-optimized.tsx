@@ -162,23 +162,23 @@ export function CampaignCreateOptimized() {
         if (!formData.name.trim()) return false
         if (!formData.templateId) return false
         if (!formData.audienceId) return false
-        
+
         // Check selected template exists and is approved
         if (!selectedTemplate || selectedTemplate.status !== 'approved') return false
-        
+
         // Check selected audience exists and has contacts
         if (!selectedAudience || selectedAudience.contact_count === 0) return false
-        
+
         // Check scheduled campaign fields
         if (formData.scheduleType === "scheduled") {
             if (!formData.scheduledDate || !formData.scheduledTime) return false
-            
+
             const scheduledDateTime = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`)
             const now = new Date()
-            
+
             if (scheduledDateTime <= now) return false
         }
-        
+
         // Check template variables
         if (selectedTemplate.variables && selectedTemplate.variables.length > 0) {
             if (formData.variableSource === "manual") {
@@ -193,14 +193,14 @@ export function CampaignCreateOptimized() {
                 const nonContactVariables = selectedTemplate.variables.filter(
                     variable => !contactVariables.includes(variable.toLowerCase())
                 )
-                
+
                 const missingNonContactVariables = nonContactVariables.filter(
                     variable => !formData.templateVariables[variable] || formData.templateVariables[variable].trim() === ""
                 )
                 if (missingNonContactVariables.length > 0) return false
             }
         }
-        
+
         return true
     }, [formData, selectedTemplate, selectedAudience])
 
@@ -793,10 +793,10 @@ export function CampaignCreateOptimized() {
                                 <RadioGroupItem value="immediate" id="immediate" />
                                 <Label htmlFor="immediate">Send now</Label>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            {/* <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="scheduled" id="scheduled" />
                                 <Label htmlFor="scheduled">Schedule for later</Label>
-                            </div>
+                            </div> */}
                         </RadioGroup>
 
                         {formData.scheduleType === "scheduled" && (
