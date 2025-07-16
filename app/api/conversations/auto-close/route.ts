@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/service-role'
+import { createServiceClient } from '@/lib/supabase/server'
 
 // API endpoint for auto-closing expired conversations
 // This should be called by a cron job every 15 minutes or so
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createClient()
+    const supabase = createServiceClient()
 
     // Call the stored function to close expired conversations
     const { data, error } = await supabase.rpc('close_expired_conversations')
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 // GET endpoint for checking conversation window status
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = createServiceClient()
 
     // Get conversations that are about to expire (within 1 hour)
     const { data: expiringSoon, error: expiringSoonError } = await supabase
