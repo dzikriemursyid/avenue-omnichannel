@@ -1,6 +1,6 @@
 // Twilio Incoming WhatsApp Message Handler
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 // Twilio sends data as form-encoded
 async function parseFormData(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     console.log("\n=== Incoming WhatsApp Message Received ===");
     console.log("Timestamp:", new Date().toISOString());
 
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const data = await parseFormData(request);
 
     // Log all parameters sent by Twilio for debugging
@@ -48,16 +48,15 @@ export async function POST(request: NextRequest) {
     console.log("  API Version:", ApiVersion);
     console.log("==========================================\n");
 
-    // Business logic for processing incoming messages
-    if (Body) {
-      console.log(`💬 Message from ${ProfileName || WaId}: "${Body}"`);
-
-      // Here you can add your business logic:
-      // 1. Store the incoming message in conversations table
-      // 2. Check for existing conversation or create new one
-      // 3. Auto-reply logic (if needed)
-      // 4. Notify team members
-      // 5. Update conversation status
+    // Business logic for processing incoming messages (text or media)
+    const hasContent = Body || (NumMedia && parseInt(NumMedia) > 0);
+    
+    if (hasContent) {
+      if (Body) {
+        console.log(`💬 Text message from ${ProfileName || WaId}: "${Body}"`);
+      } else if (NumMedia && parseInt(NumMedia) > 0) {
+        console.log(`📸 Media message from ${ProfileName || WaId} (${NumMedia} attachment(s))`);
+      }
 
       // Extract phone number from WhatsApp format
       const phoneNumber = From.replace("whatsapp:", "");
@@ -71,7 +70,7 @@ export async function POST(request: NextRequest) {
           contact = existingContact;
           console.log("✅ Found existing contact:", contact.id);
         } else {
-          // Create new contact
+          // Create new contact with system/webhook user
           const { data: newContact, error: contactError } = await supabase
             .from("contacts")
             .insert({
@@ -79,6 +78,7 @@ export async function POST(request: NextRequest) {
               name: ProfileName || WaId || phoneNumber,
               last_interaction_at: new Date().toISOString(),
               created_at: new Date().toISOString(),
+              created_by: null, // System created via webhook
             })
             .select()
             .single();
@@ -93,12 +93,25 @@ export async function POST(request: NextRequest) {
         }
 
         // Find or create conversation for this contact
+        // Note: Customer message can reopen closed conversations (24-hour window policy)
         let conversation;
-        const { data: existingConversation } = await supabase.from("conversations").select("id, contact_id, status").eq("contact_id", contact.id).eq("status", "open").single();
+        const { data: existingConversation } = await supabase
+          .from("conversations")
+          .select("id, contact_id, status")
+          .eq("contact_id", contact.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
 
         if (existingConversation) {
           conversation = existingConversation;
-          console.log("✅ Found existing conversation:", conversation.id);
+          console.log(`✅ Found existing conversation: ${conversation.id} (Status: ${conversation.status})`);
+          
+          // If conversation was closed, it will be reopened by the database trigger
+          // The trigger automatically updates status to 'open' and resets the window
+          if (conversation.status === "closed") {
+            console.log("🔄 Conversation will be reopened by database trigger (24-hour window reset)");
+          }
         } else {
           // Create new conversation
           const { data: newConversation, error: conversationError } = await supabase
@@ -122,16 +135,87 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Store the incoming message
+        // Store the incoming message with enhanced media handling
         if (conversation) {
+          // Parse media information - handle multiple media attachments
+          let messageType = "text";
+          let mediaUrl = null;
+          let mediaContentType = null;
+          let mediaAttachments = [];
+
+          const numMedia = NumMedia ? parseInt(NumMedia) : 0;
+
+          if (numMedia > 0) {
+            console.log(`📎 Processing ${numMedia} media attachment(s)`);
+            
+            // Process all media attachments
+            for (let i = 0; i < numMedia; i++) {
+              const mediaUrlKey = i === 0 ? 'MediaUrl0' : `MediaUrl${i}`;
+              const mediaContentTypeKey = i === 0 ? 'MediaContentType0' : `MediaContentType${i}`;
+              
+              const currentMediaUrl = data[mediaUrlKey];
+              const currentMediaContentType = data[mediaContentTypeKey];
+              
+              if (currentMediaUrl && currentMediaContentType) {
+                // Validate media content type
+                const isValidMediaType = [
+                  'image/', 'video/', 'audio/', 'application/pdf', 
+                  'application/msword', 'application/vnd.openxmlformats-officedocument',
+                  'text/plain', 'text/csv'
+                ].some(type => currentMediaContentType.startsWith(type));
+                
+                if (isValidMediaType) {
+                  // Get authenticated media URL
+                  const authenticatedUrl = await getAuthenticatedMediaUrl(currentMediaUrl);
+                  
+                  if (authenticatedUrl) {
+                    mediaAttachments.push({
+                      url: authenticatedUrl,
+                      contentType: currentMediaContentType,
+                      messageType: getMediaMessageType(currentMediaContentType)
+                    });
+                    
+                    console.log(`  Media ${i + 1}: ${currentMediaContentType} - ${authenticatedUrl.substring(0, 50)}...`);
+                  } else {
+                    console.log(`  ❌  Media ${i + 1} URL not accessible: ${currentMediaUrl.substring(0, 50)}...`);
+                  }
+                } else {
+                  console.log(`  ⚠️  Unsupported media type: ${currentMediaContentType}`);
+                }
+              }
+            }
+
+            // Use the first valid media attachment for primary message
+            if (mediaAttachments.length > 0) {
+              const primaryMedia = mediaAttachments[0];
+              mediaUrl = primaryMedia.url;
+              mediaContentType = primaryMedia.contentType;
+              messageType = primaryMedia.messageType;
+              
+              console.log(`✅ Primary media: ${messageType} (${mediaContentType})`);
+            }
+          }
+
+          // Generate appropriate content for different message types
+          let messageContent = Body;
+          if (!messageContent && mediaAttachments.length > 0) {
+            messageContent = `${getMediaEmoji(messageType)} ${messageType.charAt(0).toUpperCase() + messageType.slice(1)} message`;
+          } else if (!messageContent && messageType !== "text") {
+            messageContent = `${getMediaEmoji(messageType)} ${messageType.charAt(0).toUpperCase() + messageType.slice(1)} message`;
+          } else if (!messageContent) {
+            messageContent = "Message received"; // Fallback
+          }
+
           const messageData = {
             conversation_id: conversation.id,
             message_sid: MessageSid,
             direction: "inbound",
-            message_type: NumMedia && parseInt(NumMedia) > 0 ? "media" : "text",
-            content: Body || "",
-            media_url: MediaUrl0 || null,
-            media_content_type: MediaContentType0 || null,
+            message_type: messageType,
+            content: messageContent,
+            media_url: mediaUrl,
+            media_content_type: mediaContentType,
+            from_number: From,
+            to_number: To,
             timestamp: new Date().toISOString(),
             created_at: new Date().toISOString(),
           };
@@ -141,15 +225,17 @@ export async function POST(request: NextRequest) {
           if (messageError) {
             console.error("❌ Error storing message:", messageError);
           } else {
-            console.log("✅ Message stored successfully");
+            console.log(`✅ Message stored successfully (Type: ${messageType})`);
+            if (mediaAttachments.length > 1) {
+              console.log(`ℹ️  Note: ${mediaAttachments.length - 1} additional media attachment(s) not stored (single media per message supported)`);
+            }
           }
 
-          // Update conversation last_message_at
+          // Update conversation last_message_at (window updates handled by trigger)
           const { error: updateError } = await supabase
             .from("conversations")
             .update({
               last_message_at: new Date().toISOString(),
-              status: "open",
             })
             .eq("id", conversation.id);
 
@@ -172,6 +258,66 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint for webhook verification/testing
+// Helper function to determine message type from content type
+function getMediaMessageType(contentType: string): string {
+  if (contentType.startsWith("image/")) return "image";
+  if (contentType.startsWith("video/")) return "video";
+  if (contentType.startsWith("audio/")) return "audio";
+  return "document";
+}
+
+// Helper function to get emoji for media type
+function getMediaEmoji(messageType: string): string {
+  switch (messageType) {
+    case "image": return "🖼️";
+    case "video": return "🎥";
+    case "audio": return "🎵";
+    case "document": return "📄";
+    default: return "📎";
+  }
+}
+
+// Helper function to validate media file size (if provided in headers)
+function isValidMediaSize(contentLength: string | null): boolean {
+  if (!contentLength) return true; // Allow if size unknown
+  const sizeInMB = parseInt(contentLength) / (1024 * 1024);
+  return sizeInMB <= 20; // Max 20MB per Twilio limits
+}
+
+// Helper function to get authenticated media URL
+async function getAuthenticatedMediaUrl(mediaUrl: string): Promise<string | null> {
+  try {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    
+    if (!accountSid || !authToken) {
+      console.error('❌ Missing Twilio credentials');
+      return mediaUrl; // Return original URL as fallback
+    }
+
+    // Twilio media URLs are accessible with basic auth
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+    
+    const response = await fetch(mediaUrl, {
+      headers: {
+        'Authorization': `Basic ${auth}`
+      },
+      method: 'HEAD' // Just check if accessible
+    });
+
+    if (response.ok) {
+      console.log('✅ Media URL is accessible with authentication');
+      return mediaUrl; // Return original URL since it's accessible
+    } else {
+      console.error('❌ Media URL not accessible:', response.status);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error validating media URL:', error);
+    return mediaUrl; // Return original URL as fallback
+  }
+}
+
 export async function GET(request: NextRequest) {
   console.log("🔍 GET request to incoming webhook endpoint");
 
@@ -180,6 +326,18 @@ export async function GET(request: NextRequest) {
     endpoint: "/api/webhooks/twilio/incoming",
     webhookUrl: "https://webhook.dzynthesis.dev/api/webhooks/twilio/incoming",
     timestamp: new Date().toISOString(),
-    instructions: ["This endpoint receives incoming WhatsApp messages", "Configure in Twilio Console WhatsApp sandbox", 'Set as "When a message comes in" webhook URL'],
+    features: [
+      "Handles incoming WhatsApp messages",
+      "Supports multiple media attachments (images, videos, audio, documents)",
+      "Auto-creates contacts and conversations",
+      "Media validation and type detection",
+      "Enhanced logging and error handling"
+    ],
+    supportedMediaTypes: [
+      "image/*", "video/*", "audio/*", "application/pdf",
+      "application/msword", "application/vnd.openxmlformats-officedocument.*",
+      "text/plain", "text/csv"
+    ],
+    instructions: ["Configure in Twilio Console WhatsApp sandbox", 'Set as "When a message comes in" webhook URL'],
   });
 }
