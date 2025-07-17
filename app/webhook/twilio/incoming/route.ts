@@ -7,12 +7,10 @@ import { POST as IncomingWebhookPOST, GET as IncomingWebhookGET } from "@/app/ap
 
 // Forward POST requests to the incoming webhook
 export async function POST(request: NextRequest) {
-  console.log("📍 Incoming webhook alias route called - forwarding to main incoming webhook");
   return IncomingWebhookPOST(request);
 }
 
 // Forward GET requests to the incoming webhook
 export async function GET(request: NextRequest) {
-  console.log("📍 Incoming webhook alias route called - forwarding to main incoming webhook");
   return IncomingWebhookGET(request);
 }

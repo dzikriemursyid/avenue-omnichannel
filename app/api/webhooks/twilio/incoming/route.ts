@@ -17,46 +17,19 @@ async function parseFormData(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("\n=== Incoming WhatsApp Message Received ===");
-    console.log("Timestamp:", new Date().toISOString());
 
     const supabase = createServiceClient();
     const data = await parseFormData(request);
 
-    // Log all parameters sent by Twilio for debugging
-    console.log("Request Body:", JSON.stringify(data, null, 2));
 
     // Extract key information for incoming messages
     const { MessageSid, From, To, Body, MediaUrl0, MediaContentType0, NumMedia, ProfileName, WaId, SmsMessageSid, ApiVersion, AccountSid } = data;
 
-    console.log("Incoming Message Details:");
-    console.log("  SID:", MessageSid);
-    console.log("  From:", From);
-    console.log("  To:", To);
-    console.log("  Body:", Body);
-    console.log("  Profile Name:", ProfileName);
-    console.log("  WhatsApp ID:", WaId);
-
-    // Handle media if present
-    if (NumMedia && parseInt(NumMedia) > 0) {
-      console.log("  Media Count:", NumMedia);
-      console.log("  Media URL:", MediaUrl0);
-      console.log("  Media Type:", MediaContentType0);
-    }
-
-    console.log("  Account SID:", AccountSid);
-    console.log("  API Version:", ApiVersion);
-    console.log("==========================================\n");
 
     // Business logic for processing incoming messages (text or media)
     const hasContent = Body || (NumMedia && parseInt(NumMedia) > 0);
     
     if (hasContent) {
-      if (Body) {
-        console.log(`💬 Text message from ${ProfileName || WaId}: "${Body}"`);
-      } else if (NumMedia && parseInt(NumMedia) > 0) {
-        console.log(`📸 Media message from ${ProfileName || WaId} (${NumMedia} attachment(s))`);
-      }
 
       // Extract phone number from WhatsApp format
       const phoneNumber = From.replace("whatsapp:", "");
@@ -68,7 +41,6 @@ export async function POST(request: NextRequest) {
 
         if (existingContact) {
           contact = existingContact;
-          console.log("✅ Found existing contact:", contact.id);
         } else {
           // Create new contact with system/webhook user
           const { data: newContact, error: contactError } = await supabase
@@ -88,7 +60,6 @@ export async function POST(request: NextRequest) {
             return new NextResponse("OK", { status: 200 });
           } else {
             contact = newContact;
-            console.log("✅ Created new contact:", contact.id);
           }
         }
 
@@ -105,13 +76,9 @@ export async function POST(request: NextRequest) {
 
         if (existingConversation) {
           conversation = existingConversation;
-          console.log(`✅ Found existing conversation: ${conversation.id} (Status: ${conversation.status})`);
           
           // If conversation was closed, it will be reopened by the database trigger
           // The trigger automatically updates status to 'open' and resets the window
-          if (conversation.status === "closed") {
-            console.log("🔄 Conversation will be reopened by database trigger (24-hour window reset)");
-          }
         } else {
           // Create new conversation
           const { data: newConversation, error: conversationError } = await supabase
@@ -131,7 +98,6 @@ export async function POST(request: NextRequest) {
             return new NextResponse("OK", { status: 200 });
           } else {
             conversation = newConversation;
-            console.log("✅ Created new conversation:", conversation.id);
           }
         }
 
@@ -146,7 +112,6 @@ export async function POST(request: NextRequest) {
           const numMedia = NumMedia ? parseInt(NumMedia) : 0;
 
           if (numMedia > 0) {
-            console.log(`📎 Processing ${numMedia} media attachment(s)`);
             
             // Process all media attachments
             for (let i = 0; i < numMedia; i++) {
@@ -175,12 +140,11 @@ export async function POST(request: NextRequest) {
                       messageType: getMediaMessageType(currentMediaContentType)
                     });
                     
-                    console.log(`  Media ${i + 1}: ${currentMediaContentType} - ${authenticatedUrl.substring(0, 50)}...`);
                   } else {
-                    console.log(`  ❌  Media ${i + 1} URL not accessible: ${currentMediaUrl.substring(0, 50)}...`);
+                    console.error(`Media ${i + 1} URL not accessible: ${currentMediaUrl.substring(0, 50)}...`);
                   }
                 } else {
-                  console.log(`  ⚠️  Unsupported media type: ${currentMediaContentType}`);
+                  console.error(`Unsupported media type: ${currentMediaContentType}`);
                 }
               }
             }
@@ -192,7 +156,6 @@ export async function POST(request: NextRequest) {
               mediaContentType = primaryMedia.contentType;
               messageType = primaryMedia.messageType;
               
-              console.log(`✅ Primary media: ${messageType} (${mediaContentType})`);
             }
           }
 
@@ -224,11 +187,6 @@ export async function POST(request: NextRequest) {
 
           if (messageError) {
             console.error("❌ Error storing message:", messageError);
-          } else {
-            console.log(`✅ Message stored successfully (Type: ${messageType})`);
-            if (mediaAttachments.length > 1) {
-              console.log(`ℹ️  Note: ${mediaAttachments.length - 1} additional media attachment(s) not stored (single media per message supported)`);
-            }
           }
 
           // Update conversation last_message_at (window updates handled by trigger)
@@ -306,20 +264,18 @@ async function getAuthenticatedMediaUrl(mediaUrl: string): Promise<string | null
     });
 
     if (response.ok) {
-      console.log('✅ Media URL is accessible with authentication');
-      return mediaUrl; // Return original URL since it's accessible
+        return mediaUrl; // Return original URL since it's accessible
     } else {
-      console.error('❌ Media URL not accessible:', response.status);
+      console.error('Media URL not accessible:', response.status);
       return null;
     }
   } catch (error) {
-    console.error('❌ Error validating media URL:', error);
+    console.error('Error validating media URL:', error);
     return mediaUrl; // Return original URL as fallback
   }
 }
 
 export async function GET(request: NextRequest) {
-  console.log("🔍 GET request to incoming webhook endpoint");
 
   return NextResponse.json({
     message: "Twilio WhatsApp Incoming Message Webhook",

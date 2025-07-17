@@ -98,7 +98,6 @@ export class CampaignSender {
 
       if (variableOrder.length > 0) {
         // Map using the correct order from original Twilio template
-
         variableOrder.forEach((originalVariable, index) => {
           const key = (index + 1).toString();
 
@@ -120,17 +119,14 @@ export class CampaignSender {
           personalized[key] = value;
         });
 
-
         return personalized;
       }
     }
 
     // Fallback to original method if no original template data
-
     template.variables.forEach((variable, index) => {
       const key = (index + 1).toString();
       const value = templateData[variable] || "";
-      
       
       personalized[key] = value;
     });
@@ -164,7 +160,6 @@ export class CampaignSender {
       // Remove duplicates while preserving order
       const uniqueVariables = extractedVariables.filter((value, index, self) => self.indexOf(value) === index);
       
-
       return uniqueVariables;
     }
 
@@ -327,27 +322,6 @@ export class CampaignSender {
 
       // Use the new personalization function with Twilio sample variables as fallback
       const contentVariables = this.personalizeTemplateWithFallback(template, campaign, contact);
-
-
-
-
-      // Final validation: ensure we're not sending Twilio sample data
-      const twilioSampleVars = template.twilio_metadata?.variables || {};
-      const sampleDataCheck = Object.keys(contentVariables).map(key => {
-        const ourValue = contentVariables[key];
-        const variableNames = Object.keys(twilioSampleVars);
-        const correspondingTwilioSample = twilioSampleVars[variableNames[parseInt(key) - 1]];
-        
-        return {
-          position: `{{${key}}}`,
-          ourValue,
-          twilioSampleValue: correspondingTwilioSample,
-          isUsingSampleData: ourValue === correspondingTwilioSample,
-          status: ourValue === correspondingTwilioSample ? "⚠️ SAMPLE DATA DETECTED" : "✅ REAL DATA"
-        };
-      });
-
-
       // CRITICAL FIX: For WhatsApp templates, Twilio requires content variables to be sent as named variables, not numeric
       // Map back from numeric keys to named variables for Twilio API
       const namedContentVariables: Record<string, string> = {};
@@ -365,7 +339,6 @@ export class CampaignSender {
         }
       });
       
-
       // Use the primary format for now (numeric keys)
       const messageParams = {
         contentSid: template.template_id,
@@ -377,16 +350,12 @@ export class CampaignSender {
         statusCallbackMethod: "POST",
       };
 
-
       const message = await twilioClient.messages.create(messageParams);
-
-
       // Record in campaign_messages
       await this.recordMessage(campaignId, contact.id, message.sid, namedContentVariables);
 
       return message;
     } catch (error) {
-
       // Record failed message
       await this.recordFailedMessage(campaignId, contact.id, error);
       throw error;
@@ -409,7 +378,7 @@ export class CampaignSender {
     const { error } = await this.supabase.from("campaign_messages").insert(messageData).select();
 
     if (error) {
-      console.error("❌ Error recording message:", error);
+      console.error("Error recording message:", error);
     }
   }
 

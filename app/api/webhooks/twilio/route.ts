@@ -18,17 +18,10 @@ async function parseFormData(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("\n🚀 === TWILIO WEBHOOK CALLBACK RECEIVED ===");
-    console.log("⏰ Timestamp:", new Date().toISOString());
-    console.log("📍 Request URL:", request.url);
-    console.log("🌐 Request Method:", request.method);
-    console.log("📋 Headers:", Object.fromEntries(request.headers.entries()));
 
     const supabase = createAdminClient();
     const data = await parseFormData(request);
 
-    // Log all parameters sent by Twilio for debugging
-    console.log("📦 [TWILIO WEBHOOK RAW CALLBACK]", JSON.stringify(data, null, 2));
 
     // Store raw webhook payload in database for debugging
     try {
@@ -43,36 +36,18 @@ export async function POST(request: NextRequest) {
       const { error: logError } = await supabase.from("twilio_webhook_logs").insert(logData);
 
       if (logError) {
-        console.log("⚠️ Failed to store webhook log:", logError);
-      } else {
-        console.log("✅ Webhook payload stored in database");
+        console.error("Failed to store webhook log:", logError);
       }
     } catch (logStoreError) {
-      console.log("❌ Error storing webhook log:", logStoreError);
+      console.error("Error storing webhook log:", logStoreError);
     }
 
     // Extract message information - this endpoint handles STATUS CALLBACKS only
     const { MessageSid, MessageStatus, EventType, ErrorCode, ErrorMessage, From, To, Body, ApiVersion, AccountSid } = data;
 
-    console.log("🔍 Status Callback Processing:");
-    console.log("  Message SID:", MessageSid);
-    console.log("  Message Status:", MessageStatus);
-    console.log("  Event Type:", EventType);
-
-    console.log("Message Details:");
-    console.log("  SID:", MessageSid);
-    console.log("  Status:", MessageStatus);
-    console.log("  From:", From);
-    console.log("  To:", To);
-    console.log("  Body:", Body);
-
     if (ErrorCode) {
-      console.log("  Error Code:", ErrorCode);
-      console.log("  Error Message:", ErrorMessage);
+      console.error("Twilio webhook error - Code:", ErrorCode, "Message:", ErrorMessage);
     }
-
-    console.log("  Account SID:", AccountSid);
-    console.log("  API Version:", ApiVersion);
 
     // Determine the actual status - WhatsApp read receipts use EventType instead of MessageStatus
     let actualStatus = MessageStatus;
@@ -80,41 +55,17 @@ export async function POST(request: NextRequest) {
     // Handle WhatsApp read receipts
     if (EventType === "READ") {
       actualStatus = "read";
-      console.log("📱 WhatsApp read receipt detected - EventType: READ");
     }
 
     // Validate that this is a status callback
     if (!MessageStatus && !EventType) {
-      console.log("⚠️ No MessageStatus or EventType found - this might be an incoming message sent to wrong endpoint");
-      console.log("📤 Returning 200 OK to Twilio");
       return new NextResponse("OK", { status: 200 });
     }
 
-    // Handle different message statuses with logging
-    switch (actualStatus) {
-      case "queued":
-        console.log("📤 Message queued for delivery");
-        break;
-      case "sent":
-        console.log("✈️ Message sent to WhatsApp");
-        break;
-      case "delivered":
-        console.log("✅ Message delivered to recipient");
-        break;
-      case "read":
-        console.log("👁️ Message read by recipient");
-        break;
-      case "failed":
-        console.log("❌ Message failed to deliver");
-        break;
-      case "undelivered":
-        console.log("⚠️ Message undelivered");
-        break;
-      default:
-        console.log(`📊 Message status: ${actualStatus}`);
+    // Handle failed and undelivered messages with error logging
+    if (actualStatus === "failed" || actualStatus === "undelivered") {
+      console.error(`Message ${actualStatus} - SID: ${MessageSid}`, ErrorMessage ? `Error: ${ErrorMessage}` : "");
     }
-
-    console.log("🎯 ===== WEBHOOK PROCESSING COMPLETE =====\n");
 
     // Map Twilio status to internal status
     const internalStatus = messageStatusMap[actualStatus as keyof typeof messageStatusMap] || "pending";
