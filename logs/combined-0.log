@@ -1,0 +1,892 @@
+2025-07-17T17:02:21: 
+2025-07-17T17:02:21: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:21: > next start
+2025-07-17T17:02:21: 
+2025-07-17T17:02:22:  ⨯ Failed to start server
+2025-07-17T17:02:22: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:22:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:22:     at new Promise (<anonymous>) {
+2025-07-17T17:02:22:   code: 'EADDRINUSE',
+2025-07-17T17:02:22:   errno: -98,
+2025-07-17T17:02:22:   syscall: 'listen',
+2025-07-17T17:02:22:   address: '::',
+2025-07-17T17:02:22:   port: 3000
+2025-07-17T17:02:22: }
+2025-07-17T17:02:27: 
+2025-07-17T17:02:27: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:27: > next start
+2025-07-17T17:02:27: 
+2025-07-17T17:02:28:  ⨯ Failed to start server
+2025-07-17T17:02:28: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:28:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:28:     at new Promise (<anonymous>) {
+2025-07-17T17:02:28:   code: 'EADDRINUSE',
+2025-07-17T17:02:28:   errno: -98,
+2025-07-17T17:02:28:   syscall: 'listen',
+2025-07-17T17:02:28:   address: '::',
+2025-07-17T17:02:28:   port: 3000
+2025-07-17T17:02:28: }
+2025-07-17T17:02:33: 
+2025-07-17T17:02:33: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:33: > next start
+2025-07-17T17:02:33: 
+2025-07-17T17:02:34:  ⨯ Failed to start server
+2025-07-17T17:02:34: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:34:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:34:     at new Promise (<anonymous>) {
+2025-07-17T17:02:34:   code: 'EADDRINUSE',
+2025-07-17T17:02:34:   errno: -98,
+2025-07-17T17:02:34:   syscall: 'listen',
+2025-07-17T17:02:34:   address: '::',
+2025-07-17T17:02:34:   port: 3000
+2025-07-17T17:02:34: }
+2025-07-17T17:02:39: 
+2025-07-17T17:02:39: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:39: > next start
+2025-07-17T17:02:39: 
+2025-07-17T17:02:40:  ⨯ Failed to start server
+2025-07-17T17:02:40: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:40:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:40:     at new Promise (<anonymous>) {
+2025-07-17T17:02:40:   code: 'EADDRINUSE',
+2025-07-17T17:02:40:   errno: -98,
+2025-07-17T17:02:40:   syscall: 'listen',
+2025-07-17T17:02:40:   address: '::',
+2025-07-17T17:02:40:   port: 3000
+2025-07-17T17:02:40: }
+2025-07-17T17:02:45: 
+2025-07-17T17:02:45: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:45: > next start
+2025-07-17T17:02:45: 
+2025-07-17T17:02:46:  ⨯ Failed to start server
+2025-07-17T17:02:46: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:46:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:46:     at new Promise (<anonymous>) {
+2025-07-17T17:02:46:   code: 'EADDRINUSE',
+2025-07-17T17:02:46:   errno: -98,
+2025-07-17T17:02:46:   syscall: 'listen',
+2025-07-17T17:02:46:   address: '::',
+2025-07-17T17:02:46:   port: 3000
+2025-07-17T17:02:46: }
+2025-07-17T17:02:51: 
+2025-07-17T17:02:51: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:51: > next start
+2025-07-17T17:02:51: 
+2025-07-17T17:02:52:  ⨯ Failed to start server
+2025-07-17T17:02:52: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:52:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:52:     at new Promise (<anonymous>) {
+2025-07-17T17:02:52:   code: 'EADDRINUSE',
+2025-07-17T17:02:52:   errno: -98,
+2025-07-17T17:02:52:   syscall: 'listen',
+2025-07-17T17:02:52:   address: '::',
+2025-07-17T17:02:52:   port: 3000
+2025-07-17T17:02:52: }
+2025-07-17T17:02:57: 
+2025-07-17T17:02:57: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:02:57: > next start
+2025-07-17T17:02:57: 
+2025-07-17T17:02:58:  ⨯ Failed to start server
+2025-07-17T17:02:58: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:02:58:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:02:58:     at new Promise (<anonymous>) {
+2025-07-17T17:02:58:   code: 'EADDRINUSE',
+2025-07-17T17:02:58:   errno: -98,
+2025-07-17T17:02:58:   syscall: 'listen',
+2025-07-17T17:02:58:   address: '::',
+2025-07-17T17:02:58:   port: 3000
+2025-07-17T17:02:58: }
+2025-07-17T17:03:04: 
+2025-07-17T17:03:04: > avenue-omnichannel@0.1.0 start
+2025-07-17T17:03:04: > next start
+2025-07-17T17:03:04: 
+2025-07-17T17:03:05:  ⨯ Failed to start server
+2025-07-17T17:03:05: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:05:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:05:     at new Promise (<anonymous>) {
+2025-07-17T17:03:05:   code: 'EADDRINUSE',
+2025-07-17T17:03:05:   errno: -98,
+2025-07-17T17:03:05:   syscall: 'listen',
+2025-07-17T17:03:05:   address: '::',
+2025-07-17T17:03:05:   port: 3000
+2025-07-17T17:03:05: }
+2025-07-17T17:03:14: 
+2025-07-17T17:03:14: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:14: > next start
+2025-07-17T17:03:14: 
+2025-07-17T17:03:15:  ⨯ Failed to start server
+2025-07-17T17:03:15: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:15:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:15:     at new Promise (<anonymous>) {
+2025-07-17T17:03:15:   code: 'EADDRINUSE',
+2025-07-17T17:03:15:   errno: -98,
+2025-07-17T17:03:15:   syscall: 'listen',
+2025-07-17T17:03:15:   address: '::',
+2025-07-17T17:03:15:   port: 3000
+2025-07-17T17:03:15: }
+2025-07-17T17:03:15:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:21: 
+2025-07-17T17:03:21: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:21: > next start
+2025-07-17T17:03:21: 
+2025-07-17T17:03:21:  ⨯ Failed to start server
+2025-07-17T17:03:21: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:21:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:21:     at new Promise (<anonymous>) {
+2025-07-17T17:03:21:   code: 'EADDRINUSE',
+2025-07-17T17:03:21:   errno: -98,
+2025-07-17T17:03:21:   syscall: 'listen',
+2025-07-17T17:03:21:   address: '::',
+2025-07-17T17:03:21:   port: 3000
+2025-07-17T17:03:21: }
+2025-07-17T17:03:21:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:27: 
+2025-07-17T17:03:27: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:27: > next start
+2025-07-17T17:03:27: 
+2025-07-17T17:03:28:  ⨯ Failed to start server
+2025-07-17T17:03:28: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:28:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:28:     at new Promise (<anonymous>) {
+2025-07-17T17:03:28:   code: 'EADDRINUSE',
+2025-07-17T17:03:28:   errno: -98,
+2025-07-17T17:03:28:   syscall: 'listen',
+2025-07-17T17:03:28:   address: '::',
+2025-07-17T17:03:28:   port: 3000
+2025-07-17T17:03:28: }
+2025-07-17T17:03:28:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:33: 
+2025-07-17T17:03:33: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:33: > next start
+2025-07-17T17:03:33: 
+2025-07-17T17:03:34:  ⨯ Failed to start server
+2025-07-17T17:03:34: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:34:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:34:     at new Promise (<anonymous>) {
+2025-07-17T17:03:34:   code: 'EADDRINUSE',
+2025-07-17T17:03:34:   errno: -98,
+2025-07-17T17:03:34:   syscall: 'listen',
+2025-07-17T17:03:34:   address: '::',
+2025-07-17T17:03:34:   port: 3000
+2025-07-17T17:03:34: }
+2025-07-17T17:03:34:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:40: 
+2025-07-17T17:03:40: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:40: > next start
+2025-07-17T17:03:40: 
+2025-07-17T17:03:40:  ⨯ Failed to start server
+2025-07-17T17:03:40: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:40:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:40:     at new Promise (<anonymous>) {
+2025-07-17T17:03:40:   code: 'EADDRINUSE',
+2025-07-17T17:03:40:   errno: -98,
+2025-07-17T17:03:40:   syscall: 'listen',
+2025-07-17T17:03:40:   address: '::',
+2025-07-17T17:03:40:   port: 3000
+2025-07-17T17:03:40: }
+2025-07-17T17:03:40:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:46: 
+2025-07-17T17:03:46: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:46: > next start
+2025-07-17T17:03:46: 
+2025-07-17T17:03:47:  ⨯ Failed to start server
+2025-07-17T17:03:47: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:47:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:47:     at new Promise (<anonymous>) {
+2025-07-17T17:03:47:   code: 'EADDRINUSE',
+2025-07-17T17:03:47:   errno: -98,
+2025-07-17T17:03:47:   syscall: 'listen',
+2025-07-17T17:03:47:   address: '::',
+2025-07-17T17:03:47:   port: 3000
+2025-07-17T17:03:47: }
+2025-07-17T17:03:47:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:53: 
+2025-07-17T17:03:53: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:53: > next start
+2025-07-17T17:03:53: 
+2025-07-17T17:03:53:  ⨯ Failed to start server
+2025-07-17T17:03:53: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:03:53:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:03:53:     at new Promise (<anonymous>) {
+2025-07-17T17:03:53:   code: 'EADDRINUSE',
+2025-07-17T17:03:53:   errno: -98,
+2025-07-17T17:03:53:   syscall: 'listen',
+2025-07-17T17:03:53:   address: '::',
+2025-07-17T17:03:53:   port: 3000
+2025-07-17T17:03:53: }
+2025-07-17T17:03:53:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:03:59: 
+2025-07-17T17:03:59: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:03:59: > next start
+2025-07-17T17:03:59: 
+2025-07-17T17:04:00:  ⨯ Failed to start server
+2025-07-17T17:04:00: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:04:00:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:04:00:     at new Promise (<anonymous>) {
+2025-07-17T17:04:00:   code: 'EADDRINUSE',
+2025-07-17T17:04:00:   errno: -98,
+2025-07-17T17:04:00:   syscall: 'listen',
+2025-07-17T17:04:00:   address: '::',
+2025-07-17T17:04:00:   port: 3000
+2025-07-17T17:04:00: }
+2025-07-17T17:04:00:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:04:05: 
+2025-07-17T17:04:05: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:04:05: > next start
+2025-07-17T17:04:05: 
+2025-07-17T17:04:06:  ⨯ Failed to start server
+2025-07-17T17:04:06: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:04:06:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:04:06:     at new Promise (<anonymous>) {
+2025-07-17T17:04:06:   code: 'EADDRINUSE',
+2025-07-17T17:04:06:   errno: -98,
+2025-07-17T17:04:06:   syscall: 'listen',
+2025-07-17T17:04:06:   address: '::',
+2025-07-17T17:04:06:   port: 3000
+2025-07-17T17:04:06: }
+2025-07-17T17:04:06:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:04:12: 
+2025-07-17T17:04:12: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:04:12: > next start
+2025-07-17T17:04:12: 
+2025-07-17T17:04:12:  ⨯ Failed to start server
+2025-07-17T17:04:12: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:04:12:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:04:12:     at new Promise (<anonymous>) {
+2025-07-17T17:04:12:   code: 'EADDRINUSE',
+2025-07-17T17:04:12:   errno: -98,
+2025-07-17T17:04:12:   syscall: 'listen',
+2025-07-17T17:04:12:   address: '::',
+2025-07-17T17:04:12:   port: 3000
+2025-07-17T17:04:12: }
+2025-07-17T17:04:12:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:17:54: 
+2025-07-17T17:17:54: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:17:54: > next start
+2025-07-17T17:17:54: 
+2025-07-17T17:17:54:  ⨯ Failed to start server
+2025-07-17T17:17:54: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:17:54:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:17:54:     at new Promise (<anonymous>) {
+2025-07-17T17:17:54:   code: 'EADDRINUSE',
+2025-07-17T17:17:54:   errno: -98,
+2025-07-17T17:17:54:   syscall: 'listen',
+2025-07-17T17:17:54:   address: '::',
+2025-07-17T17:17:54:   port: 3000
+2025-07-17T17:17:54: }
+2025-07-17T17:17:54:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:00: 
+2025-07-17T17:18:00: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:00: > next start
+2025-07-17T17:18:00: 
+2025-07-17T17:18:01:  ⨯ Failed to start server
+2025-07-17T17:18:01: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:01:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:01:     at new Promise (<anonymous>) {
+2025-07-17T17:18:01:   code: 'EADDRINUSE',
+2025-07-17T17:18:01:   errno: -98,
+2025-07-17T17:18:01:   syscall: 'listen',
+2025-07-17T17:18:01:   address: '::',
+2025-07-17T17:18:01:   port: 3000
+2025-07-17T17:18:01: }
+2025-07-17T17:18:01:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:07: 
+2025-07-17T17:18:07: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:07: > next start
+2025-07-17T17:18:07: 
+2025-07-17T17:18:07:  ⨯ Failed to start server
+2025-07-17T17:18:07: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:07:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:07:     at new Promise (<anonymous>) {
+2025-07-17T17:18:07:   code: 'EADDRINUSE',
+2025-07-17T17:18:07:   errno: -98,
+2025-07-17T17:18:07:   syscall: 'listen',
+2025-07-17T17:18:07:   address: '::',
+2025-07-17T17:18:07:   port: 3000
+2025-07-17T17:18:07: }
+2025-07-17T17:18:07:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:13: 
+2025-07-17T17:18:13: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:13: > next start
+2025-07-17T17:18:13: 
+2025-07-17T17:18:14:  ⨯ Failed to start server
+2025-07-17T17:18:14: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:14:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:14:     at new Promise (<anonymous>) {
+2025-07-17T17:18:14:   code: 'EADDRINUSE',
+2025-07-17T17:18:14:   errno: -98,
+2025-07-17T17:18:14:   syscall: 'listen',
+2025-07-17T17:18:14:   address: '::',
+2025-07-17T17:18:14:   port: 3000
+2025-07-17T17:18:14: }
+2025-07-17T17:18:14:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:20: 
+2025-07-17T17:18:20: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:20: > next start
+2025-07-17T17:18:20: 
+2025-07-17T17:18:20:  ⨯ Failed to start server
+2025-07-17T17:18:20: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:20:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:20:     at new Promise (<anonymous>) {
+2025-07-17T17:18:20:   code: 'EADDRINUSE',
+2025-07-17T17:18:20:   errno: -98,
+2025-07-17T17:18:20:   syscall: 'listen',
+2025-07-17T17:18:20:   address: '::',
+2025-07-17T17:18:20:   port: 3000
+2025-07-17T17:18:20: }
+2025-07-17T17:18:20:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:25: 
+2025-07-17T17:18:25: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:25: > next start
+2025-07-17T17:18:25: 
+2025-07-17T17:18:26:  ⨯ Failed to start server
+2025-07-17T17:18:26: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:26:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:26:     at new Promise (<anonymous>) {
+2025-07-17T17:18:26:   code: 'EADDRINUSE',
+2025-07-17T17:18:26:   errno: -98,
+2025-07-17T17:18:26:   syscall: 'listen',
+2025-07-17T17:18:26:   address: '::',
+2025-07-17T17:18:26:   port: 3000
+2025-07-17T17:18:26: }
+2025-07-17T17:18:26:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:32: 
+2025-07-17T17:18:32: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:32: > next start
+2025-07-17T17:18:32: 
+2025-07-17T17:18:32:  ⨯ Failed to start server
+2025-07-17T17:18:32: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:32:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:32:     at new Promise (<anonymous>) {
+2025-07-17T17:18:32:   code: 'EADDRINUSE',
+2025-07-17T17:18:32:   errno: -98,
+2025-07-17T17:18:32:   syscall: 'listen',
+2025-07-17T17:18:32:   address: '::',
+2025-07-17T17:18:32:   port: 3000
+2025-07-17T17:18:32: }
+2025-07-17T17:18:32:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:38: 
+2025-07-17T17:18:38: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:38: > next start
+2025-07-17T17:18:38: 
+2025-07-17T17:18:39:  ⨯ Failed to start server
+2025-07-17T17:18:39: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:39:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:39:     at new Promise (<anonymous>) {
+2025-07-17T17:18:39:   code: 'EADDRINUSE',
+2025-07-17T17:18:39:   errno: -98,
+2025-07-17T17:18:39:   syscall: 'listen',
+2025-07-17T17:18:39:   address: '::',
+2025-07-17T17:18:39:   port: 3000
+2025-07-17T17:18:39: }
+2025-07-17T17:18:39:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:45: 
+2025-07-17T17:18:45: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:45: > next start
+2025-07-17T17:18:45: 
+2025-07-17T17:18:45:  ⨯ Failed to start server
+2025-07-17T17:18:45: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:45:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:45:     at new Promise (<anonymous>) {
+2025-07-17T17:18:45:   code: 'EADDRINUSE',
+2025-07-17T17:18:45:   errno: -98,
+2025-07-17T17:18:45:   syscall: 'listen',
+2025-07-17T17:18:45:   address: '::',
+2025-07-17T17:18:45:   port: 3000
+2025-07-17T17:18:45: }
+2025-07-17T17:18:45:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:51: 
+2025-07-17T17:18:51: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:51: > next start
+2025-07-17T17:18:51: 
+2025-07-17T17:18:51:  ⨯ Failed to start server
+2025-07-17T17:18:51: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:51:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:51:     at new Promise (<anonymous>) {
+2025-07-17T17:18:51:   code: 'EADDRINUSE',
+2025-07-17T17:18:51:   errno: -98,
+2025-07-17T17:18:51:   syscall: 'listen',
+2025-07-17T17:18:51:   address: '::',
+2025-07-17T17:18:51:   port: 3000
+2025-07-17T17:18:51: }
+2025-07-17T17:18:51:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:18:57: 
+2025-07-17T17:18:57: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:18:57: > next start
+2025-07-17T17:18:57: 
+2025-07-17T17:18:58:  ⨯ Failed to start server
+2025-07-17T17:18:58: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:18:58:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:18:58:     at new Promise (<anonymous>) {
+2025-07-17T17:18:58:   code: 'EADDRINUSE',
+2025-07-17T17:18:58:   errno: -98,
+2025-07-17T17:18:58:   syscall: 'listen',
+2025-07-17T17:18:58:   address: '::',
+2025-07-17T17:18:58:   port: 3000
+2025-07-17T17:18:58: }
+2025-07-17T17:18:58:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:19:04: 
+2025-07-17T17:19:04: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:19:04: > next start
+2025-07-17T17:19:04: 
+2025-07-17T17:19:04:  ⨯ Failed to start server
+2025-07-17T17:19:04: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:19:04:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:19:04:     at new Promise (<anonymous>) {
+2025-07-17T17:19:04:   code: 'EADDRINUSE',
+2025-07-17T17:19:04:   errno: -98,
+2025-07-17T17:19:04:   syscall: 'listen',
+2025-07-17T17:19:04:   address: '::',
+2025-07-17T17:19:04:   port: 3000
+2025-07-17T17:19:04: }
+2025-07-17T17:19:04:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:19:10: 
+2025-07-17T17:19:10: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:19:10: > next start
+2025-07-17T17:19:10: 
+2025-07-17T17:19:11:  ⨯ Failed to start server
+2025-07-17T17:19:11: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:19:11:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:19:11:     at new Promise (<anonymous>) {
+2025-07-17T17:19:11:   code: 'EADDRINUSE',
+2025-07-17T17:19:11:   errno: -98,
+2025-07-17T17:19:11:   syscall: 'listen',
+2025-07-17T17:19:11:   address: '::',
+2025-07-17T17:19:11:   port: 3000
+2025-07-17T17:19:11: }
+2025-07-17T17:19:11:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:19:17: 
+2025-07-17T17:19:17: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:19:17: > next start
+2025-07-17T17:19:17: 
+2025-07-17T17:19:18:  ⨯ Failed to start server
+2025-07-17T17:19:18: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:19:18:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:19:18:     at new Promise (<anonymous>) {
+2025-07-17T17:19:18:   code: 'EADDRINUSE',
+2025-07-17T17:19:18:   errno: -98,
+2025-07-17T17:19:18:   syscall: 'listen',
+2025-07-17T17:19:18:   address: '::',
+2025-07-17T17:19:18:   port: 3000
+2025-07-17T17:19:18: }
+2025-07-17T17:19:18:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:19:24: 
+2025-07-17T17:19:24: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:19:24: > next start
+2025-07-17T17:19:24: 
+2025-07-17T17:19:24:  ⨯ Failed to start server
+2025-07-17T17:19:24: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:19:24:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:19:24:     at new Promise (<anonymous>) {
+2025-07-17T17:19:24:   code: 'EADDRINUSE',
+2025-07-17T17:19:24:   errno: -98,
+2025-07-17T17:19:24:   syscall: 'listen',
+2025-07-17T17:19:24:   address: '::',
+2025-07-17T17:19:24:   port: 3000
+2025-07-17T17:19:24: }
+2025-07-17T17:19:24:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:21:31: 
+2025-07-17T17:21:31: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:21:31: > next start
+2025-07-17T17:21:31: 
+2025-07-17T17:21:31:  ⨯ Failed to start server
+2025-07-17T17:21:31: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:21:31:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:21:31:     at new Promise (<anonymous>) {
+2025-07-17T17:21:31:   code: 'EADDRINUSE',
+2025-07-17T17:21:31:   errno: -98,
+2025-07-17T17:21:31:   syscall: 'listen',
+2025-07-17T17:21:31:   address: '::',
+2025-07-17T17:21:31:   port: 3000
+2025-07-17T17:21:31: }
+2025-07-17T17:21:31:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:21:37: 
+2025-07-17T17:21:37: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:21:37: > next start
+2025-07-17T17:21:37: 
+2025-07-17T17:21:38:  ⨯ Failed to start server
+2025-07-17T17:21:38: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:21:38:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:21:38:     at new Promise (<anonymous>) {
+2025-07-17T17:21:38:   code: 'EADDRINUSE',
+2025-07-17T17:21:38:   errno: -98,
+2025-07-17T17:21:38:   syscall: 'listen',
+2025-07-17T17:21:38:   address: '::',
+2025-07-17T17:21:38:   port: 3000
+2025-07-17T17:21:38: }
+2025-07-17T17:21:38:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:21:43: 
+2025-07-17T17:21:43: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:21:43: > next start
+2025-07-17T17:21:43: 
+2025-07-17T17:21:44:  ⨯ Failed to start server
+2025-07-17T17:21:44: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:21:44:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:21:44:     at new Promise (<anonymous>) {
+2025-07-17T17:21:44:   code: 'EADDRINUSE',
+2025-07-17T17:21:44:   errno: -98,
+2025-07-17T17:21:44:   syscall: 'listen',
+2025-07-17T17:21:44:   address: '::',
+2025-07-17T17:21:44:   port: 3000
+2025-07-17T17:21:44: }
+2025-07-17T17:21:44:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:21:50: 
+2025-07-17T17:21:50: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:21:50: > next start
+2025-07-17T17:21:50: 
+2025-07-17T17:21:51:  ⨯ Failed to start server
+2025-07-17T17:21:51: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:21:51:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:21:51:     at new Promise (<anonymous>) {
+2025-07-17T17:21:51:   code: 'EADDRINUSE',
+2025-07-17T17:21:51:   errno: -98,
+2025-07-17T17:21:51:   syscall: 'listen',
+2025-07-17T17:21:51:   address: '::',
+2025-07-17T17:21:51:   port: 3000
+2025-07-17T17:21:51: }
+2025-07-17T17:21:51:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:21:57: 
+2025-07-17T17:21:57: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:21:57: > next start
+2025-07-17T17:21:57: 
+2025-07-17T17:21:57:  ⨯ Failed to start server
+2025-07-17T17:21:57: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:21:57:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:21:57:     at new Promise (<anonymous>) {
+2025-07-17T17:21:57:   code: 'EADDRINUSE',
+2025-07-17T17:21:57:   errno: -98,
+2025-07-17T17:21:57:   syscall: 'listen',
+2025-07-17T17:21:57:   address: '::',
+2025-07-17T17:21:57:   port: 3000
+2025-07-17T17:21:57: }
+2025-07-17T17:21:57:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:22:03: 
+2025-07-17T17:22:03: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:22:03: > next start
+2025-07-17T17:22:03: 
+2025-07-17T17:22:04:  ⨯ Failed to start server
+2025-07-17T17:22:04: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:22:04:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:22:04:     at new Promise (<anonymous>) {
+2025-07-17T17:22:04:   code: 'EADDRINUSE',
+2025-07-17T17:22:04:   errno: -98,
+2025-07-17T17:22:04:   syscall: 'listen',
+2025-07-17T17:22:04:   address: '::',
+2025-07-17T17:22:04:   port: 3000
+2025-07-17T17:22:04: }
+2025-07-17T17:22:04:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:22:10: 
+2025-07-17T17:22:10: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:22:10: > next start
+2025-07-17T17:22:10: 
+2025-07-17T17:22:10:  ⨯ Failed to start server
+2025-07-17T17:22:10: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:22:10:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:22:10:     at new Promise (<anonymous>) {
+2025-07-17T17:22:10:   code: 'EADDRINUSE',
+2025-07-17T17:22:10:   errno: -98,
+2025-07-17T17:22:10:   syscall: 'listen',
+2025-07-17T17:22:10:   address: '::',
+2025-07-17T17:22:10:   port: 3000
+2025-07-17T17:22:10: }
+2025-07-17T17:22:10:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:22:16: 
+2025-07-17T17:22:16: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:22:16: > next start
+2025-07-17T17:22:16: 
+2025-07-17T17:22:17:  ⨯ Failed to start server
+2025-07-17T17:22:17: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:22:17:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:22:17:     at new Promise (<anonymous>) {
+2025-07-17T17:22:17:   code: 'EADDRINUSE',
+2025-07-17T17:22:17:   errno: -98,
+2025-07-17T17:22:17:   syscall: 'listen',
+2025-07-17T17:22:17:   address: '::',
+2025-07-17T17:22:17:   port: 3000
+2025-07-17T17:22:17: }
+2025-07-17T17:22:17:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:22:23: 
+2025-07-17T17:22:23: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:22:23: > next start
+2025-07-17T17:22:23: 
+2025-07-17T17:22:23:  ⨯ Failed to start server
+2025-07-17T17:22:23: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:22:23:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:22:23:     at new Promise (<anonymous>) {
+2025-07-17T17:22:23:   code: 'EADDRINUSE',
+2025-07-17T17:22:23:   errno: -98,
+2025-07-17T17:22:23:   syscall: 'listen',
+2025-07-17T17:22:23:   address: '::',
+2025-07-17T17:22:23:   port: 3000
+2025-07-17T17:22:23: }
+2025-07-17T17:22:23:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:22:29: 
+2025-07-17T17:22:29: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:22:29: > next start
+2025-07-17T17:22:29: 
+2025-07-17T17:22:29:  ⨯ Failed to start server
+2025-07-17T17:22:29: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:22:29:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:22:29:     at new Promise (<anonymous>) {
+2025-07-17T17:22:29:   code: 'EADDRINUSE',
+2025-07-17T17:22:29:   errno: -98,
+2025-07-17T17:22:29:   syscall: 'listen',
+2025-07-17T17:22:29:   address: '::',
+2025-07-17T17:22:29:   port: 3000
+2025-07-17T17:22:29: }
+2025-07-17T17:22:29:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:26:41: 
+2025-07-17T17:26:41: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:26:41: > next start
+2025-07-17T17:26:41: 
+2025-07-17T17:26:42:  ⨯ Failed to start server
+2025-07-17T17:26:42: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:26:42:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:26:42:     at new Promise (<anonymous>) {
+2025-07-17T17:26:42:   code: 'EADDRINUSE',
+2025-07-17T17:26:42:   errno: -98,
+2025-07-17T17:26:42:   syscall: 'listen',
+2025-07-17T17:26:42:   address: '::',
+2025-07-17T17:26:42:   port: 3000
+2025-07-17T17:26:42: }
+2025-07-17T17:26:42:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:26:48: 
+2025-07-17T17:26:48: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:26:48: > next start
+2025-07-17T17:26:48: 
+2025-07-17T17:26:48:  ⨯ Failed to start server
+2025-07-17T17:26:48: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:26:48:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:26:48:     at new Promise (<anonymous>) {
+2025-07-17T17:26:48:   code: 'EADDRINUSE',
+2025-07-17T17:26:48:   errno: -98,
+2025-07-17T17:26:48:   syscall: 'listen',
+2025-07-17T17:26:48:   address: '::',
+2025-07-17T17:26:48:   port: 3000
+2025-07-17T17:26:48: }
+2025-07-17T17:26:48:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:26:54: 
+2025-07-17T17:26:54: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:26:54: > next start
+2025-07-17T17:26:54: 
+2025-07-17T17:26:55:  ⨯ Failed to start server
+2025-07-17T17:26:55: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:26:55:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:26:55:     at new Promise (<anonymous>) {
+2025-07-17T17:26:55:   code: 'EADDRINUSE',
+2025-07-17T17:26:55:   errno: -98,
+2025-07-17T17:26:55:   syscall: 'listen',
+2025-07-17T17:26:55:   address: '::',
+2025-07-17T17:26:55:   port: 3000
+2025-07-17T17:26:55: }
+2025-07-17T17:26:55:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:01: 
+2025-07-17T17:27:01: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:01: > next start
+2025-07-17T17:27:01: 
+2025-07-17T17:27:01:  ⨯ Failed to start server
+2025-07-17T17:27:01: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:01:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:01:     at new Promise (<anonymous>) {
+2025-07-17T17:27:01:   code: 'EADDRINUSE',
+2025-07-17T17:27:01:   errno: -98,
+2025-07-17T17:27:01:   syscall: 'listen',
+2025-07-17T17:27:01:   address: '::',
+2025-07-17T17:27:01:   port: 3000
+2025-07-17T17:27:01: }
+2025-07-17T17:27:01:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:07: 
+2025-07-17T17:27:07: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:07: > next start
+2025-07-17T17:27:07: 
+2025-07-17T17:27:08:  ⨯ Failed to start server
+2025-07-17T17:27:08: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:08:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:08:     at new Promise (<anonymous>) {
+2025-07-17T17:27:08:   code: 'EADDRINUSE',
+2025-07-17T17:27:08:   errno: -98,
+2025-07-17T17:27:08:   syscall: 'listen',
+2025-07-17T17:27:08:   address: '::',
+2025-07-17T17:27:08:   port: 3000
+2025-07-17T17:27:08: }
+2025-07-17T17:27:08:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:14: 
+2025-07-17T17:27:14: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:14: > next start
+2025-07-17T17:27:14: 
+2025-07-17T17:27:14:  ⨯ Failed to start server
+2025-07-17T17:27:14: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:14:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:14:     at new Promise (<anonymous>) {
+2025-07-17T17:27:14:   code: 'EADDRINUSE',
+2025-07-17T17:27:14:   errno: -98,
+2025-07-17T17:27:14:   syscall: 'listen',
+2025-07-17T17:27:14:   address: '::',
+2025-07-17T17:27:14:   port: 3000
+2025-07-17T17:27:14: }
+2025-07-17T17:27:14:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:20: 
+2025-07-17T17:27:20: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:20: > next start
+2025-07-17T17:27:20: 
+2025-07-17T17:27:21:  ⨯ Failed to start server
+2025-07-17T17:27:21: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:21:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:21:     at new Promise (<anonymous>) {
+2025-07-17T17:27:21:   code: 'EADDRINUSE',
+2025-07-17T17:27:21:   errno: -98,
+2025-07-17T17:27:21:   syscall: 'listen',
+2025-07-17T17:27:21:   address: '::',
+2025-07-17T17:27:21:   port: 3000
+2025-07-17T17:27:21: }
+2025-07-17T17:27:21:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:27: 
+2025-07-17T17:27:27: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:27: > next start
+2025-07-17T17:27:27: 
+2025-07-17T17:27:27:  ⨯ Failed to start server
+2025-07-17T17:27:27: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:27:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:27:     at new Promise (<anonymous>) {
+2025-07-17T17:27:27:   code: 'EADDRINUSE',
+2025-07-17T17:27:27:   errno: -98,
+2025-07-17T17:27:27:   syscall: 'listen',
+2025-07-17T17:27:27:   address: '::',
+2025-07-17T17:27:27:   port: 3000
+2025-07-17T17:27:27: }
+2025-07-17T17:27:27:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:33: 
+2025-07-17T17:27:33: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:33: > next start
+2025-07-17T17:27:33: 
+2025-07-17T17:27:34:  ⨯ Failed to start server
+2025-07-17T17:27:34: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:34:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:34:     at new Promise (<anonymous>) {
+2025-07-17T17:27:34:   code: 'EADDRINUSE',
+2025-07-17T17:27:34:   errno: -98,
+2025-07-17T17:27:34:   syscall: 'listen',
+2025-07-17T17:27:34:   address: '::',
+2025-07-17T17:27:34:   port: 3000
+2025-07-17T17:27:34: }
+2025-07-17T17:27:34:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:27:40: 
+2025-07-17T17:27:40: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:27:40: > next start
+2025-07-17T17:27:40: 
+2025-07-17T17:27:40:  ⨯ Failed to start server
+2025-07-17T17:27:40: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:27:40:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:27:40:     at new Promise (<anonymous>) {
+2025-07-17T17:27:40:   code: 'EADDRINUSE',
+2025-07-17T17:27:40:   errno: -98,
+2025-07-17T17:27:40:   syscall: 'listen',
+2025-07-17T17:27:40:   address: '::',
+2025-07-17T17:27:40:   port: 3000
+2025-07-17T17:27:40: }
+2025-07-17T17:27:40:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:18: 
+2025-07-17T17:33:18: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:18: > next start
+2025-07-17T17:33:18: 
+2025-07-17T17:33:19:  ⨯ Failed to start server
+2025-07-17T17:33:19: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:19:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:19:     at new Promise (<anonymous>) {
+2025-07-17T17:33:19:   code: 'EADDRINUSE',
+2025-07-17T17:33:19:   errno: -98,
+2025-07-17T17:33:19:   syscall: 'listen',
+2025-07-17T17:33:19:   address: '::',
+2025-07-17T17:33:19:   port: 3000
+2025-07-17T17:33:19: }
+2025-07-17T17:33:19:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:25: 
+2025-07-17T17:33:25: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:25: > next start
+2025-07-17T17:33:25: 
+2025-07-17T17:33:25:  ⨯ Failed to start server
+2025-07-17T17:33:25: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:25:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:25:     at new Promise (<anonymous>) {
+2025-07-17T17:33:25:   code: 'EADDRINUSE',
+2025-07-17T17:33:25:   errno: -98,
+2025-07-17T17:33:25:   syscall: 'listen',
+2025-07-17T17:33:25:   address: '::',
+2025-07-17T17:33:25:   port: 3000
+2025-07-17T17:33:25: }
+2025-07-17T17:33:25:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:31: 
+2025-07-17T17:33:31: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:31: > next start
+2025-07-17T17:33:31: 
+2025-07-17T17:33:32:  ⨯ Failed to start server
+2025-07-17T17:33:32: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:32:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:32:     at new Promise (<anonymous>) {
+2025-07-17T17:33:32:   code: 'EADDRINUSE',
+2025-07-17T17:33:32:   errno: -98,
+2025-07-17T17:33:32:   syscall: 'listen',
+2025-07-17T17:33:32:   address: '::',
+2025-07-17T17:33:32:   port: 3000
+2025-07-17T17:33:32: }
+2025-07-17T17:33:32:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:38: 
+2025-07-17T17:33:38: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:38: > next start
+2025-07-17T17:33:38: 
+2025-07-17T17:33:38:  ⨯ Failed to start server
+2025-07-17T17:33:38: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:38:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:38:     at new Promise (<anonymous>) {
+2025-07-17T17:33:38:   code: 'EADDRINUSE',
+2025-07-17T17:33:38:   errno: -98,
+2025-07-17T17:33:38:   syscall: 'listen',
+2025-07-17T17:33:38:   address: '::',
+2025-07-17T17:33:38:   port: 3000
+2025-07-17T17:33:38: }
+2025-07-17T17:33:38:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:45: 
+2025-07-17T17:33:45: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:45: > next start
+2025-07-17T17:33:45: 
+2025-07-17T17:33:45:  ⨯ Failed to start server
+2025-07-17T17:33:45: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:45:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:45:     at new Promise (<anonymous>) {
+2025-07-17T17:33:45:   code: 'EADDRINUSE',
+2025-07-17T17:33:45:   errno: -98,
+2025-07-17T17:33:45:   syscall: 'listen',
+2025-07-17T17:33:45:   address: '::',
+2025-07-17T17:33:45:   port: 3000
+2025-07-17T17:33:45: }
+2025-07-17T17:33:45:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:51: 
+2025-07-17T17:33:51: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:51: > next start
+2025-07-17T17:33:51: 
+2025-07-17T17:33:52:  ⨯ Failed to start server
+2025-07-17T17:33:52: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:52:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:52:     at new Promise (<anonymous>) {
+2025-07-17T17:33:52:   code: 'EADDRINUSE',
+2025-07-17T17:33:52:   errno: -98,
+2025-07-17T17:33:52:   syscall: 'listen',
+2025-07-17T17:33:52:   address: '::',
+2025-07-17T17:33:52:   port: 3000
+2025-07-17T17:33:52: }
+2025-07-17T17:33:52:  ELIFECYCLE  Command failed with exit code 1.
+2025-07-17T17:33:58: 
+2025-07-17T17:33:58: > avenue-omnichannel@0.1.0 start /home/dzikrie/avenue-omnichannel
+2025-07-17T17:33:58: > next start
+2025-07-17T17:33:58: 
+2025-07-17T17:33:58:  ⨯ Failed to start server
+2025-07-17T17:33:58: Error: listen EADDRINUSE: address already in use :::3000
+2025-07-17T17:33:58:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+2025-07-17T17:33:58:     at new Promise (<anonymous>) {
+2025-07-17T17:33:58:   code: 'EADDRINUSE',
+2025-07-17T17:33:58:   errno: -98,
+2025-07-17T17:33:58:   syscall: 'listen',
+2025-07-17T17:33:58:   address: '::',
+2025-07-17T17:33:58:   port: 3000
+2025-07-17T17:33:58: }
+2025-07-17T17:33:58:  ELIFECYCLE  Command failed with exit code 1.
