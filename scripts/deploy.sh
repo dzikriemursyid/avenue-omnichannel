@@ -100,11 +100,20 @@ fi
 
 log "🆕 New commit: $NEW_COMMIT_SHORT - $COMMIT_MESSAGE"
 
-# Stop PM2 application
+# Stop PM2 application and kill any orphaned processes
 log "⏹️ Stopping PM2 application..."
 pm2 stop "$PM2_APP_NAME" || {
-    warning "Failed to stop PM2 application, continuing..."
+    warning "Failed to stop PM2 application via PM2, continuing..."
 }
+
+# Kill any orphaned Next.js processes on port 3000
+log "🔍 Checking for orphaned processes on port 3000..."
+ORPHANED_PID=$(lsof -ti:3000 2>/dev/null || true)
+if [ ! -z "$ORPHANED_PID" ]; then
+    log "💀 Killing orphaned process(es): $ORPHANED_PID"
+    kill -9 $ORPHANED_PID 2>/dev/null || true
+    sleep 2
+fi
 
 # Install/update dependencies
 log "📦 Installing dependencies..."
@@ -130,12 +139,39 @@ pnpm build || {
     exit 1
 }
 
-# Restart PM2 application
+# Restart PM2 application with better error handling
 log "🚀 Restarting PM2 application..."
-pm2 restart "$PM2_APP_NAME" || {
-    error "Failed to restart PM2 application"
-    exit 1
-}
+
+# First try restart, if fails try start
+if ! pm2 restart "$PM2_APP_NAME" 2>/dev/null; then
+    warning "PM2 restart failed, trying to start application..."
+    if ! pm2 start "$PM2_APP_NAME" 2>/dev/null; then
+        warning "PM2 start also failed, trying to start from ecosystem config..."
+        if ! pm2 start ecosystem.config.js 2>/dev/null; then
+            error "All PM2 start methods failed. Checking port conflict..."
+            
+            # Check if port is still in use
+            PORT_USER=$(lsof -ti:3000 2>/dev/null || true)
+            if [ ! -z "$PORT_USER" ]; then
+                error "Port 3000 still in use by process: $PORT_USER"
+                log "💀 Force killing process on port 3000..."
+                kill -9 $PORT_USER 2>/dev/null || true
+                sleep 3
+                
+                # Try one more time
+                if ! pm2 start ecosystem.config.js; then
+                    error "Final PM2 start attempt failed"
+                    exit 1
+                fi
+            else
+                error "PM2 restart failed but port is free. Check PM2 logs: pm2 logs $PM2_APP_NAME"
+                exit 1
+            fi
+        fi
+    fi
+fi
+
+log "✅ PM2 application started successfully"
 
 # Wait for application to be ready
 log "⏳ Waiting for application to be ready..."
