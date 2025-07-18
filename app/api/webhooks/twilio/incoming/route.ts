@@ -17,20 +17,16 @@ async function parseFormData(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-
     const supabase = createServiceClient();
     const data = await parseFormData(request);
-
 
     // Extract key information for incoming messages
     const { MessageSid, From, To, Body, MediaUrl0, MediaContentType0, NumMedia, ProfileName, WaId, SmsMessageSid, ApiVersion, AccountSid } = data;
 
-
     // Business logic for processing incoming messages (text or media)
     const hasContent = Body || (NumMedia && parseInt(NumMedia) > 0);
-    
-    if (hasContent) {
 
+    if (hasContent) {
       // Extract phone number from WhatsApp format
       const phoneNumber = From.replace("whatsapp:", "");
 
@@ -57,7 +53,7 @@ export async function POST(request: NextRequest) {
 
           if (contactError) {
             console.error("❌ Error creating contact:", contactError);
-            return new NextResponse("OK", { status: 200 });
+            return new NextResponse("", { status: 200 });
           } else {
             contact = newContact;
           }
@@ -66,17 +62,11 @@ export async function POST(request: NextRequest) {
         // Find or create conversation for this contact
         // Note: Customer message can reopen closed conversations (24-hour window policy)
         let conversation;
-        const { data: existingConversation } = await supabase
-          .from("conversations")
-          .select("id, contact_id, status")
-          .eq("contact_id", contact.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+        const { data: existingConversation } = await supabase.from("conversations").select("id, contact_id, status").eq("contact_id", contact.id).order("created_at", { ascending: false }).limit(1).single();
 
         if (existingConversation) {
           conversation = existingConversation;
-          
+
           // If conversation was closed, it will be reopened by the database trigger
           // The trigger automatically updates status to 'open' and resets the window
         } else {
@@ -95,7 +85,7 @@ export async function POST(request: NextRequest) {
 
           if (conversationError) {
             console.error("❌ Error creating conversation:", conversationError);
-            return new NextResponse("OK", { status: 200 });
+            return new NextResponse("", { status: 200 });
           } else {
             conversation = newConversation;
           }
@@ -112,34 +102,30 @@ export async function POST(request: NextRequest) {
           const numMedia = NumMedia ? parseInt(NumMedia) : 0;
 
           if (numMedia > 0) {
-            
             // Process all media attachments
             for (let i = 0; i < numMedia; i++) {
-              const mediaUrlKey = i === 0 ? 'MediaUrl0' : `MediaUrl${i}`;
-              const mediaContentTypeKey = i === 0 ? 'MediaContentType0' : `MediaContentType${i}`;
-              
+              const mediaUrlKey = i === 0 ? "MediaUrl0" : `MediaUrl${i}`;
+              const mediaContentTypeKey = i === 0 ? "MediaContentType0" : `MediaContentType${i}`;
+
               const currentMediaUrl = data[mediaUrlKey];
               const currentMediaContentType = data[mediaContentTypeKey];
-              
+
               if (currentMediaUrl && currentMediaContentType) {
                 // Validate media content type
-                const isValidMediaType = [
-                  'image/', 'video/', 'audio/', 'application/pdf', 
-                  'application/msword', 'application/vnd.openxmlformats-officedocument',
-                  'text/plain', 'text/csv'
-                ].some(type => currentMediaContentType.startsWith(type));
-                
+                const isValidMediaType = ["image/", "video/", "audio/", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument", "text/plain", "text/csv"].some((type) =>
+                  currentMediaContentType.startsWith(type)
+                );
+
                 if (isValidMediaType) {
                   // Get authenticated media URL
                   const authenticatedUrl = await getAuthenticatedMediaUrl(currentMediaUrl);
-                  
+
                   if (authenticatedUrl) {
                     mediaAttachments.push({
                       url: authenticatedUrl,
                       contentType: currentMediaContentType,
-                      messageType: getMediaMessageType(currentMediaContentType)
+                      messageType: getMediaMessageType(currentMediaContentType),
                     });
-                    
                   } else {
                     console.error(`Media ${i + 1} URL not accessible: ${currentMediaUrl.substring(0, 50)}...`);
                   }
@@ -155,7 +141,6 @@ export async function POST(request: NextRequest) {
               mediaUrl = primaryMedia.url;
               mediaContentType = primaryMedia.contentType;
               messageType = primaryMedia.messageType;
-              
             }
           }
 
@@ -207,11 +192,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Respond to Twilio (must respond with 200 status)
-    return new NextResponse("OK", { status: 200 });
+    return new NextResponse("", { status: 200 });
   } catch (error) {
     console.error("❌ Incoming webhook error:", error);
     // Still return 200 to prevent Twilio from retrying
-    return new NextResponse("OK", { status: 200 });
+    return new NextResponse("", { status: 200 });
   }
 }
 
@@ -227,11 +212,16 @@ function getMediaMessageType(contentType: string): string {
 // Helper function to get emoji for media type
 function getMediaEmoji(messageType: string): string {
   switch (messageType) {
-    case "image": return "🖼️";
-    case "video": return "🎥";
-    case "audio": return "🎵";
-    case "document": return "📄";
-    default: return "📎";
+    case "image":
+      return "🖼️";
+    case "video":
+      return "🎥";
+    case "audio":
+      return "🎵";
+    case "document":
+      return "📄";
+    default:
+      return "📎";
   }
 }
 
@@ -247,36 +237,35 @@ async function getAuthenticatedMediaUrl(mediaUrl: string): Promise<string | null
   try {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    
+
     if (!accountSid || !authToken) {
-      console.error('❌ Missing Twilio credentials');
+      console.error("❌ Missing Twilio credentials");
       return mediaUrl; // Return original URL as fallback
     }
 
     // Twilio media URLs are accessible with basic auth
-    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-    
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+
     const response = await fetch(mediaUrl, {
       headers: {
-        'Authorization': `Basic ${auth}`
+        Authorization: `Basic ${auth}`,
       },
-      method: 'HEAD' // Just check if accessible
+      method: "HEAD", // Just check if accessible
     });
 
     if (response.ok) {
-        return mediaUrl; // Return original URL since it's accessible
+      return mediaUrl; // Return original URL since it's accessible
     } else {
-      console.error('Media URL not accessible:', response.status);
+      console.error("Media URL not accessible:", response.status);
       return null;
     }
   } catch (error) {
-    console.error('Error validating media URL:', error);
+    console.error("Error validating media URL:", error);
     return mediaUrl; // Return original URL as fallback
   }
 }
 
 export async function GET(request: NextRequest) {
-
   return NextResponse.json({
     message: "Twilio WhatsApp Incoming Message Webhook",
     endpoint: "/api/webhooks/twilio/incoming",
@@ -287,13 +276,9 @@ export async function GET(request: NextRequest) {
       "Supports multiple media attachments (images, videos, audio, documents)",
       "Auto-creates contacts and conversations",
       "Media validation and type detection",
-      "Enhanced logging and error handling"
+      "Enhanced logging and error handling",
     ],
-    supportedMediaTypes: [
-      "image/*", "video/*", "audio/*", "application/pdf",
-      "application/msword", "application/vnd.openxmlformats-officedocument.*",
-      "text/plain", "text/csv"
-    ],
+    supportedMediaTypes: ["image/*", "video/*", "audio/*", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.*", "text/plain", "text/csv"],
     instructions: ["Configure in Twilio Console WhatsApp sandbox", 'Set as "When a message comes in" webhook URL'],
   });
 }

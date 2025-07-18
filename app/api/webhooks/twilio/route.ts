@@ -18,10 +18,8 @@ async function parseFormData(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-
     const supabase = createAdminClient();
     const data = await parseFormData(request);
-
 
     // Store raw webhook payload in database for debugging
     try {
@@ -32,7 +30,7 @@ export async function POST(request: NextRequest) {
         raw_headers: Object.fromEntries(request.headers.entries()),
         received_at: new Date().toISOString(),
       };
-      
+
       const { error: logError } = await supabase.from("twilio_webhook_logs").insert(logData);
 
       if (logError) {
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Determine the actual status - WhatsApp read receipts use EventType instead of MessageStatus
     let actualStatus = MessageStatus;
-    
+
     // Handle WhatsApp read receipts
     if (EventType === "READ") {
       actualStatus = "read";
@@ -59,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Validate that this is a status callback
     if (!MessageStatus && !EventType) {
-      return new NextResponse("OK", { status: 200 });
+      return new NextResponse("", { status: 200 });
     }
 
     // Handle failed and undelivered messages with error logging
@@ -70,24 +68,24 @@ export async function POST(request: NextRequest) {
     // Map Twilio status to internal status
     const internalStatus = messageStatusMap[actualStatus as keyof typeof messageStatusMap] || "pending";
     // Update campaign message status
-    
+
     // First check if there are any messages with this SID
     const { data: allMessages, error: allError } = await supabase.from("campaign_messages").select("id, campaign_id, status, delivered_at, message_sid").eq("message_sid", MessageSid);
-    
+
     if (allError) {
-      return new NextResponse("OK", { status: 200 });
+      return new NextResponse("", { status: 200 });
     }
-    
+
     if (!allMessages || allMessages.length === 0) {
-      return new NextResponse("OK", { status: 200 });
+      return new NextResponse("", { status: 200 });
     }
-    
+
     const existingMessage = allMessages[0];
     const findError = null;
 
     if (findError) {
       // Still return OK to prevent Twilio from retrying
-      return new NextResponse("OK", { status: 200 });
+      return new NextResponse("", { status: 200 });
     }
 
     // Update campaign message status
@@ -119,12 +117,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Return 200 OK to Twilio
-    return new NextResponse("OK", { status: 200 });
+    return new NextResponse("", { status: 200 });
   } catch (error) {
     console.error("💥 WEBHOOK ERROR:", error);
     console.error("Stack trace:", error instanceof Error ? error.stack : "No stack trace available");
     // Still return 200 to prevent Twilio from retrying
-    return new NextResponse("OK", { status: 200 });
+    return new NextResponse("", { status: 200 });
   }
 }
 
@@ -152,18 +150,21 @@ async function updateCampaignAnalytics(supabase: any, campaignId: string) {
   const readRate = totalDelivered > 0 ? Math.round((totalRead / totalDelivered) * 100 * 100) / 100 : 0;
 
   // Update analytics
-  const { error: analyticsError } = await supabase.from("campaign_analytics").upsert({
-    campaign_id: campaignId,
-    total_sent: totalSent,
-    total_delivered: totalDelivered,
-    total_read: totalRead,
-    total_failed: totalFailed,
-    delivery_rate: deliveryRate,
-    read_rate: readRate,
-    updated_at: new Date().toISOString(),
-  }, {
-    onConflict: 'campaign_id'
-  });
+  const { error: analyticsError } = await supabase.from("campaign_analytics").upsert(
+    {
+      campaign_id: campaignId,
+      total_sent: totalSent,
+      total_delivered: totalDelivered,
+      total_read: totalRead,
+      total_failed: totalFailed,
+      delivery_rate: deliveryRate,
+      read_rate: readRate,
+      updated_at: new Date().toISOString(),
+    },
+    {
+      onConflict: "campaign_id",
+    }
+  );
 
   if (analyticsError) {
     console.error("❌ Error updating campaign analytics:", analyticsError);
@@ -194,7 +195,7 @@ export async function GET(request: NextRequest) {
   // Check if this is a test query
   const url = new URL(request.url);
   const test = url.searchParams.get("test");
-  
+
   if (test === "connectivity") {
     return NextResponse.json({
       status: "success",
@@ -212,11 +213,11 @@ export async function GET(request: NextRequest) {
     timestamp: new Date().toISOString(),
     status: "Active and ready to receive callbacks",
     instructions: [
-      "This endpoint receives Twilio status callbacks", 
-      "Configure in Twilio Console or use StatusCallback parameter", 
+      "This endpoint receives Twilio status callbacks",
+      "Configure in Twilio Console or use StatusCallback parameter",
       "Supported statuses: queued, sent, delivered, read, failed, undelivered",
       "All callbacks are logged to console and database",
-      "Add ?test=connectivity to test webhook connectivity"
+      "Add ?test=connectivity to test webhook connectivity",
     ],
   });
 }

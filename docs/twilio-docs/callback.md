@@ -120,7 +120,7 @@ Copy code block
 
 exports.handler = function(context, event, callback) {
 console.log("Invoked with: ", event);
-return callback(null, "OK");
+return callback(null, "");
 };
 By default your new serverless function is created as a protected endpoint, which means Twilio Serverless performs signature validation to ensure only valid Twilio requests invoke your handler.
 
