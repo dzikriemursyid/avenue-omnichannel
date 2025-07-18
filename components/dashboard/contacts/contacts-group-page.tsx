@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Download, Upload, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactsManager } from "./contacts-manager";
 import { useContactGroup } from "@/hooks/use-contact-groups";
@@ -38,17 +38,6 @@ export function ContactsGroupPage({ groupId }: ContactsGroupPageProps) {
                     </Button>
                 </div>
 
-                {/* Right side - Action buttons */}
-                <div className="flex items-center gap-2 overflow-x-auto">
-                    <Button variant="outline" size="sm" className="flex items-center gap-2 whitespace-nowrap">
-                        <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Export</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2 whitespace-nowrap">
-                        <Upload className="h-4 w-4" />
-                        <span className="">Import</span>
-                    </Button>
-                </div>
             </div>
 
             {/* Group Details Card */}
@@ -166,6 +155,7 @@ export function ContactsGroupPage({ groupId }: ContactsGroupPageProps) {
                 <ContactsManager
                     groupId={groupId}
                     showGroupFilters={false}
+                    showCSVActions={true}
                 />
             </div>
         </div>

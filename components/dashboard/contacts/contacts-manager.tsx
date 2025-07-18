@@ -29,18 +29,21 @@ import { toast } from "sonner"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Contact } from "@/lib/api/contacts"
 import { useDebounce } from "@/hooks/use-debounce"
+import { ContactsCSVManager } from "./contacts-csv-manager"
 
 
 interface ContactsManagerProps {
     groupId?: string;
     searchTerm?: string;
     showGroupFilters?: boolean;
+    showCSVActions?: boolean;
 }
 
 export function ContactsManager({
     groupId,
     searchTerm: externalSearchTerm,
-    showGroupFilters = true
+    showGroupFilters = true,
+    showCSVActions = false
 }: ContactsManagerProps = {}) {
     const { profile, loading: profileLoading, error: profileError } = useProfile()
     const { groups } = useContactGroups() // For group selector
@@ -87,6 +90,19 @@ export function ContactsManager({
     )
 
     const generalContactsResult = useContacts(!isGroupSpecific ? contactsParams : { limit: 50, page: 1, sort: "created_at", order: "desc" as const })
+    
+    // Get all contacts for duplicate checking with safe limit of 100
+    const allContactsParams = useMemo(() => ({
+        limit: 100, // Safe limit as requested
+        page: 1,
+        sort: "created_at",
+        order: "desc" as const
+    }), [])
+    
+    const allContactsResult = useContacts(showCSVActions ? allContactsParams : { limit: 50, page: 1, sort: "created_at", order: "desc" as const })
+    
+    // Use allContacts only if there's no error
+    const safeAllContacts = allContactsResult.error ? undefined : allContactsResult.contacts
 
     // Select the appropriate result based on context
     const {
@@ -121,6 +137,34 @@ export function ContactsManager({
     const updateContactMutation = useUpdateContact()
     const deleteContactMutation = useDeleteContact()
 
+    // Phone number normalization function
+    const normalizePhoneNumber = useCallback((phone: string) => {
+        // Remove all non-digit characters
+        const digits = phone.replace(/\D/g, '')
+        
+        // If empty, return empty string
+        if (!digits) return phone
+        
+        // Handle different Indonesian phone number formats
+        if (digits.startsWith('62')) {
+            // Already has 62 country code, ensure it starts with +62
+            return '+' + digits
+        } else if (digits.startsWith('0')) {
+            // Starts with 0, replace with +62
+            return '+62' + digits.substring(1)
+        } else if (digits.length >= 9 && digits.length <= 13) {
+            // Assume it's Indonesian mobile number without country code or leading 0
+            return '+62' + digits
+        }
+        
+        // If it doesn't match Indonesian patterns, return as-is but ensure + prefix for international
+        if (!phone.startsWith('+')) {
+            return '+' + digits
+        }
+        
+        return phone
+    }, [])
+
     // Form state for create/edit - now includes group selection
     const [formData, setFormData] = useState({
         name: "",
@@ -129,8 +173,12 @@ export function ContactsManager({
     })
 
     const handleInputChange = useCallback((field: string, value: string) => {
+        // Apply phone number normalization for phone_number field
+        if (field === 'phone_number') {
+            value = normalizePhoneNumber(value)
+        }
         setFormData(prev => ({ ...prev, [field]: value }))
-    }, [])
+    }, [normalizePhoneNumber])
 
     const resetForm = useCallback(() => {
         setFormData({
@@ -369,12 +417,25 @@ export function ContactsManager({
                                 )}
                             </CardDescription>
                         </div>
-                        {canManage && groupId && (
-                            <Button onClick={handleAdd} size="sm">
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Add Contact
-                            </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {showCSVActions && canManage && (
+                                <ContactsCSVManager
+                                    contacts={filteredContacts}
+                                    groups={groups}
+                                    groupId={groupId}
+                                    onRefetch={refetch}
+                                    normalizePhoneNumber={normalizePhoneNumber}
+                                    validatePhoneNumber={validatePhoneNumber}
+                                    allContacts={safeAllContacts || []}
+                                />
+                            )}
+                            {canManage && groupId && (
+                                <Button onClick={handleAdd} size="sm">
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Add Contact
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -487,11 +548,11 @@ export function ContactsManager({
                                 type="tel"
                                 value={formData.phone_number}
                                 onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                                placeholder="+6281234567890"
+                                placeholder="087864457646"
                                 disabled={createContactMutation.loading || updateContactMutation.loading}
                             />
                             <p className="text-xs text-muted-foreground">
-                                Include country code (e.g., +62 for Indonesia, +1 for US)
+                                Enter Indonesian phone number (will be automatically formatted to +62)
                             </p>
                         </div>
 

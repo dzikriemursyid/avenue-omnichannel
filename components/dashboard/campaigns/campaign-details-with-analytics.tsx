@@ -37,6 +37,7 @@ interface CampaignDetailsWithAnalyticsProps {
 interface CampaignMessage {
     id: string
     phone_number: string
+    contact_name?: string
     status: string
     sent_at: string
     delivered_at?: string
@@ -220,20 +221,11 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
 
     const StatusIcon = statusIcons[campaign.status]
     const progress = Math.round(((campaign.sent_count || 0) / Math.max(campaign.target_count || 1, 1)) * 100)
-    // Calculate delivery rate - if a message is read, it was logically delivered
-    const effectiveDeliveredCount = Math.max(campaign.delivered_count || 0, campaign.read_count || 0)
-    const detailsDeliveryRate = typeof campaign.delivery_rate === 'number' && campaign.delivery_rate > 0
-        ? Math.round(campaign.delivery_rate)
-        : (campaign.sent_count || 0) > 0
-            ? Math.round((effectiveDeliveredCount / (campaign.sent_count || 1)) * 100)
-            : 0
-
-    // Calculate read rate - read count vs effective delivered count
-    const detailsReadRate = typeof campaign.read_rate === 'number' && campaign.read_rate > 0
-        ? Math.round(campaign.read_rate)
-        : effectiveDeliveredCount > 0
-            ? Math.round(((campaign.read_count || 0) / effectiveDeliveredCount) * 100)
-            : 0
+    // Calculate effective delivered count - if a message is read, it was logically delivered
+    const actualDeliveredCount = campaign.delivered_count || 0
+    const readCount = campaign.read_count || 0
+    // Total effectively delivered includes both delivered and read (since read implies delivered)
+    const totalDeliveredCount = actualDeliveredCount + readCount
 
     // Group messages by status for analytics
     const messageStats = messages.reduce((acc, msg) => {
@@ -344,9 +336,9 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                         <CheckCircle className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{effectiveDeliveredCount.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{totalDeliveredCount.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {detailsDeliveryRate}% delivery rate
+                            of {(campaign.sent_count || 0).toLocaleString()} sent
                         </p>
                     </CardContent>
                 </Card>
@@ -357,9 +349,9 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                         <Eye className="h-4 w-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{(campaign.read_count || 0).toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{readCount.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {detailsReadRate}% read rate
+                            of {(campaign.sent_count || 0).toLocaleString()} sent
                         </p>
                     </CardContent>
                 </Card>
@@ -372,7 +364,7 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                     <CardContent>
                         <div className="text-2xl font-bold">{(campaign.failed_count || 0).toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {(campaign.sent_count || 0) > 0 ? Math.round(((campaign.failed_count || 0) / (campaign.sent_count || 1)) * 100) : 0}% failure rate
+                            of {(campaign.sent_count || 0).toLocaleString()} sent
                         </p>
                     </CardContent>
                 </Card>
@@ -403,34 +395,34 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span>Delivery Rate</span>
-                                <span>{detailsDeliveryRate}%</span>
+                                <span>Delivered</span>
+                                <span>{totalDeliveredCount.toLocaleString()}</span>
                             </div>
-                            <Progress value={detailsDeliveryRate} className="w-full" />
+                            <Progress value={(campaign.sent_count || 0) > 0 ? (totalDeliveredCount / (campaign.sent_count || 1)) * 100 : 0} className="w-full" />
                             <div className="text-xs text-muted-foreground">
-                                {effectiveDeliveredCount.toLocaleString()} of {(campaign.sent_count || 0).toLocaleString()} delivered
+                                {totalDeliveredCount.toLocaleString()} of {(campaign.sent_count || 0).toLocaleString()} sent
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span>Read Rate</span>
-                                <span>{detailsReadRate}%</span>
+                                <span>Read</span>
+                                <span>{readCount.toLocaleString()}</span>
                             </div>
-                            <Progress value={detailsReadRate} className="w-full" />
+                            <Progress value={(campaign.sent_count || 0) > 0 ? (readCount / (campaign.sent_count || 1)) * 100 : 0} className="w-full" />
                             <div className="text-xs text-muted-foreground">
-                                {(campaign.read_count || 0).toLocaleString()} of {effectiveDeliveredCount.toLocaleString()} read
+                                {readCount.toLocaleString()} of {(campaign.sent_count || 0).toLocaleString()} sent
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span>Success Rate</span>
-                                <span>{(campaign.sent_count || 0) > 0 ? Math.round(((campaign.sent_count || 0) - (campaign.failed_count || 0)) / (campaign.sent_count || 1) * 100) : 0}%</span>
+                                <span>Successful</span>
+                                <span>{((campaign.sent_count || 0) - (campaign.failed_count || 0)).toLocaleString()}</span>
                             </div>
                             <Progress value={(campaign.sent_count || 0) > 0 ? ((campaign.sent_count || 0) - (campaign.failed_count || 0)) / (campaign.sent_count || 1) * 100 : 0} className="w-full" />
                             <div className="text-xs text-muted-foreground">
-                                {(campaign.failed_count || 0).toLocaleString()} failed messages
+                                {((campaign.sent_count || 0) - (campaign.failed_count || 0)).toLocaleString()} of {(campaign.sent_count || 0).toLocaleString()} sent
                             </div>
                         </div>
                     </div>
@@ -500,7 +492,18 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                             {messages.slice(0, 10).map((message) => (
                                 <div key={message.id} className="flex items-center justify-between p-3 border rounded-lg">
                                     <div className="space-y-1">
-                                        <div className="font-medium">{message.phone_number}</div>
+                                        <div className="font-medium">
+                                            {message.contact_name ? (
+                                                <span>
+                                                    {message.contact_name}
+                                                    <span className="text-muted-foreground font-normal ml-2">
+                                                        ({message.phone_number})
+                                                    </span>
+                                                </span>
+                                            ) : (
+                                                message.phone_number
+                                            )}
+                                        </div>
                                         <div className="text-xs text-muted-foreground">
                                             Sent: {new Date(message.sent_at).toLocaleString()}
                                             {message.delivered_at && (

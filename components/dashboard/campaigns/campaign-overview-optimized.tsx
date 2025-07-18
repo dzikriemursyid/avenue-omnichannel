@@ -94,9 +94,6 @@ export function CampaignOverviewOptimized() {
     // Calculate effective delivered count - if a message is read, it was logically delivered
     const totalEffectiveDelivered = campaigns.reduce((sum, c) => sum + Math.max(c.delivered_count || 0, c.read_count || 0), 0)
 
-    // Prefer API-calculated rates if available, else fallback to manual calculation with effective delivered count
-    const deliveryRate = analytics.deliveryRate > 0 ? analytics.deliveryRate : (analytics.totalSent > 0 ? Math.round((totalEffectiveDelivered / analytics.totalSent) * 100) : 0)
-    const readRate = analytics.readRate > 0 ? analytics.readRate : (totalEffectiveDelivered > 0 ? Math.round((analytics.totalRead / totalEffectiveDelivered) * 100) : 0)
 
     // Loading state
     if (profileLoading || campaignsLoading) {
@@ -294,7 +291,7 @@ export function CampaignOverviewOptimized() {
                     <CardContent>
                         <div className="text-2xl font-bold">{totalEffectiveDelivered.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {deliveryRate}% delivery rate
+                            of {analytics.totalSent.toLocaleString()} sent
                         </p>
                     </CardContent>
                 </Card>
@@ -307,7 +304,7 @@ export function CampaignOverviewOptimized() {
                     <CardContent>
                         <div className="text-2xl font-bold">{analytics.totalRead.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {readRate}% read rate
+                            of {totalEffectiveDelivered.toLocaleString()} delivered
                         </p>
                     </CardContent>
                 </Card>
@@ -320,7 +317,7 @@ export function CampaignOverviewOptimized() {
                     <CardContent>
                         <div className="text-2xl font-bold">{analytics.totalFailed.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            {analytics.totalSent > 0 ? Math.round((analytics.totalFailed / analytics.totalSent) * 100) : 0}% failure rate
+                            of {analytics.totalSent.toLocaleString()} sent
                         </p>
                     </CardContent>
                 </Card>
@@ -372,19 +369,13 @@ export function CampaignOverviewOptimized() {
                         <div className="space-y-4">
                             {campaigns.map((campaign) => {
                                 const StatusIcon = statusIcons[campaign.status]
-                                const progress = Math.round(((campaign.sent_count || 0) / Math.max(campaign.target_count || 1, 1)) * 100)
+                                const sentCount = campaign.sent_count || 0
+                                const targetCount = campaign.target_count || 0
+                                const progress = Math.round((sentCount / Math.max(targetCount, 1)) * 100)
                                 // Calculate effective delivered count - if a message is read, it was logically delivered
                                 const effectiveDeliveredCount = Math.max(campaign.delivered_count || 0, campaign.read_count || 0)
-                                const cardDeliveryRate = typeof campaign.delivery_rate === 'number' && campaign.delivery_rate > 0
-                                    ? Math.round(campaign.delivery_rate)
-                                    : (campaign.sent_count || 0) > 0
-                                        ? Math.round((effectiveDeliveredCount / (campaign.sent_count || 1)) * 100)
-                                        : 0
-                                const cardReadRate = typeof campaign.read_rate === 'number' && campaign.read_rate > 0
-                                    ? Math.round(campaign.read_rate)
-                                    : effectiveDeliveredCount > 0
-                                        ? Math.round(((campaign.read_count || 0) / effectiveDeliveredCount) * 100)
-                                        : 0
+                                const cardDeliveryCount = effectiveDeliveredCount
+                                const cardReadCount = campaign.read_count || 0
 
                                 return (
                                     <div key={campaign.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
@@ -414,11 +405,11 @@ export function CampaignOverviewOptimized() {
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <CheckCircle className="h-3 w-3" />
-                                                    {cardDeliveryRate}% delivered
+                                                    {cardDeliveryCount.toLocaleString()} delivered
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Eye className="h-3 w-3" />
-                                                    {cardReadRate}% read
+                                                    {cardReadCount.toLocaleString()} read
                                                 </span>
                                                 {(campaign.failed_count || 0) > 0 && (
                                                     <span className="flex items-center gap-1 text-red-600">
@@ -434,12 +425,12 @@ export function CampaignOverviewOptimized() {
                                             <div className="space-y-1">
                                                 <div className="flex justify-between text-sm">
                                                     <span>Sent</span>
-                                                    <span>{progress}%</span>
+                                                    <span>{sentCount.toLocaleString()} of {targetCount.toLocaleString()}</span>
                                                 </div>
                                                 <Progress value={progress} className="w-full" />
                                                 <div className="flex justify-between text-xs text-muted-foreground">
-                                                    <span>{(campaign.sent_count || 0).toLocaleString()} sent</span>
-                                                    <span>{(campaign.target_count || 0).toLocaleString()} total</span>
+                                                    <span>{sentCount.toLocaleString()} sent</span>
+                                                    <span>{targetCount.toLocaleString()} total</span>
                                                 </div>
                                             </div>
                                         </div>
