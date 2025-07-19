@@ -363,34 +363,190 @@ export class CampaignSender {
   }
 
   private async recordMessage(campaignId: string, contactId: string, messageSid: string, templateData: Record<string, string>) {
-    const phoneNumberData = await this.supabase.from("contacts").select("phone_number").eq("id", contactId).single();
+    console.log(`📝 Recording campaign message for contact ${contactId} and creating conversation...`);
+    
+    // Get contact and campaign data
+    const [contactData, campaignData] = await Promise.all([
+      this.supabase.from("contacts").select("phone_number, name").eq("id", contactId).single(),
+      this.supabase.from("campaigns").select("name, created_by, template_id").eq("id", campaignId).single()
+    ]);
 
-    const messageData = {
+    const contact = contactData.data;
+    const campaign = campaignData.data;
+    
+    if (!contact?.phone_number) {
+      console.error(`❌ Contact ${contactId} has no phone number`);
+      return;
+    }
+
+    // Step 1: Record in campaign_messages table (existing functionality)
+    const campaignMessageData = {
       campaign_id: campaignId,
       contact_id: contactId,
       message_sid: messageSid,
-      phone_number: phoneNumberData.data?.phone_number,
+      phone_number: contact.phone_number,
       template_data: templateData,
       status: "sent",
       sent_at: new Date().toISOString(),
     };
 
-    const { error } = await this.supabase.from("campaign_messages").insert(messageData).select();
+    const { error: campaignError } = await this.supabase.from("campaign_messages").insert(campaignMessageData).select();
 
-    if (error) {
-      console.error("Error recording message:", error);
+    if (campaignError) {
+      console.error("❌ Error recording campaign message:", campaignError);
+      return;
     }
+
+    // Step 2: Find or create conversation for this contact
+    let conversationId: string;
+    
+    try {
+      // Try to find existing conversation by contact_id
+      const existingConversation = await this.supabase
+        .from("conversations")
+        .select("id")
+        .eq("contact_id", contactId)
+        .single();
+
+      if (existingConversation.data) {
+        conversationId = existingConversation.data.id;
+        console.log(`✅ Found existing conversation: ${conversationId}`);
+        
+        // Update existing conversation to track campaign involvement if not already set
+        const { error: updateError } = await this.supabase
+          .from("conversations")
+          .update({
+            created_by_campaign: campaignId, // Track campaign involvement
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", conversationId)
+          .is("created_by_campaign", null); // Only update if not already set
+          
+        if (updateError) {
+          console.error("❌ Error updating existing conversation:", updateError);
+        } else {
+          console.log(`✅ Updated existing conversation ${conversationId} with campaign tracking`);
+        }
+      } else {
+        // Create new conversation with dormant visibility (campaign conversation)
+        const newConversation = await this.supabase
+          .from("conversations")
+          .insert({
+            contact_id: contactId,
+            status: "open", // Use valid status from schema
+            priority: "normal", // Default priority
+            last_message_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_within_window: true,
+            visibility_status: "dormant", // Hidden from main UI until customer replies
+            created_by_campaign: campaignId // Track which campaign created this conversation
+          })
+          .select("id")
+          .single();
+
+        if (newConversation.error) {
+          console.error("❌ Error creating conversation:", newConversation.error);
+          return;
+        }
+
+        conversationId = newConversation.data.id;
+        console.log(`✅ Created new conversation: ${conversationId}`);
+      }
+    } catch (error) {
+      console.error("❌ Error handling conversation:", error);
+      return;
+    }
+
+    // Step 3: Get template content for the message
+    const templateResult = await this.supabase
+      .from("message_templates")
+      .select("body_text, name")
+      .eq("id", campaign?.template_id)
+      .single();
+
+    let messageContent = "Campaign message";
+    if (templateResult.data?.body_text) {
+      // Replace template variables with actual values
+      messageContent = templateResult.data.body_text;
+      Object.entries(templateData).forEach(([key, value]) => {
+        messageContent = messageContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      });
+      
+      // Add campaign context to message content as metadata
+      messageContent += `\n\n---\nCampaign: ${campaign?.name || 'Unknown'}\nTemplate: ${templateResult.data.name || 'Unknown'}`;
+    }
+
+    // Step 4: Record in messages table for conversation tracking
+    const messageData = {
+      conversation_id: conversationId,
+      message_sid: messageSid,
+      direction: "outbound",
+      message_type: "text", // Use valid message_type from schema
+      content: messageContent,
+      sent_by: campaign?.created_by || null,
+      timestamp: new Date().toISOString(), // Use timestamp field from schema
+      from_number: null, // Will be populated by Twilio webhook
+      to_number: contact.phone_number,
+      created_at: new Date().toISOString()
+    };
+
+    const { error: messageError } = await this.supabase.from("messages").insert(messageData).select();
+
+    if (messageError) {
+      console.error("❌ Error recording message in conversations:", messageError);
+      return;
+    }
+    
+    console.log(`✅ Successfully recorded message in conversations table for campaign ${campaignId}`);
+
+    // Step 5: Update conversation's last_message_at
+    const { error: updateError } = await this.supabase
+      .from("conversations")
+      .update({
+        last_message_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", conversationId);
+
+    if (updateError) {
+      console.error("❌ Error updating conversation timestamp:", updateError);
+    } else {
+      console.log(`✅ Campaign message fully integrated: Campaign ${campaignId} -> Conversation ${conversationId}`);
+    }
+    
+    // Note: Campaign tracking remains in campaign_messages table
+    // Conversation context now available for customer replies
   }
 
   private async recordFailedMessage(campaignId: string, contactId: string, error: any) {
-    await this.supabase.from("campaign_messages").insert({
+    console.log(`❌ Recording failed campaign message for contact ${contactId}`);
+    
+    const contactData = await this.supabase.from("contacts").select("phone_number, name").eq("id", contactId).single();
+    const contact = contactData.data;
+    
+    if (!contact?.phone_number) {
+      console.error(`❌ Contact ${contactId} has no phone number`);
+      return;
+    }
+
+    // Record failed message in campaign_messages table
+    const { error: campaignError } = await this.supabase.from("campaign_messages").insert({
       campaign_id: campaignId,
       contact_id: contactId,
-      phone_number: (await this.supabase.from("contacts").select("phone_number").eq("id", contactId).single()).data?.phone_number,
+      phone_number: contact.phone_number,
       status: "failed",
       error_message: error.message || "Unknown error",
       sent_at: new Date().toISOString(),
     });
+
+    if (campaignError) {
+      console.error("❌ Error recording failed campaign message:", campaignError);
+    }
+
+    // Note: We don't create conversations for failed messages
+    // They will be created when the customer responds or when we successfully send them a message
+    console.log(`✅ Recorded failed campaign message for contact ${contactId}`);
   }
 
   private async updateCampaignStatus(campaignId: string, status: string) {

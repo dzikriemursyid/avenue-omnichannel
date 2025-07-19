@@ -17,6 +17,8 @@ interface Conversation {
   is_within_window?: boolean;
   conversation_window_expires_at?: string;
   last_customer_message_at?: string;
+  visibility_status?: "active" | "dormant";
+  created_by_campaign?: string;
 }
 
 interface ConversationStats {

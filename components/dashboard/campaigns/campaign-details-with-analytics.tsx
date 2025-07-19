@@ -20,6 +20,10 @@ import {
     MessageSquare,
     Activity,
     BarChart3,
+    MessageCircle,
+    Users,
+    TrendingUp,
+    EyeOff,
 } from "lucide-react"
 import { useCampaign } from "@/hooks"
 import { toast } from "sonner"
@@ -45,6 +49,22 @@ interface CampaignMessage {
     error_message?: string
 }
 
+interface ActivationStats {
+    totalConversations: number
+    activatedConversations: number
+    dormantConversations: number
+    activationRate: number
+    avgResponseTimeHours: number
+}
+
+interface ActivatedDetail {
+    conversationId: string
+    contactName: string
+    phoneNumber: string
+    responseDelayHours: number
+    activatedAt: string
+}
+
 export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWithAnalyticsProps) {
     const { campaign, loading: campaignLoading, error: campaignError, refetch } = useCampaign(campaignId)
     const [messages, setMessages] = useState<CampaignMessage[]>([])
@@ -52,6 +72,11 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [autoRefresh, setAutoRefresh] = useState(true)
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+    
+    // Activation stats state
+    const [activationStats, setActivationStats] = useState<ActivationStats | null>(null)
+    const [activatedDetails, setActivatedDetails] = useState<ActivatedDetail[]>([])
+    const [activationLoading, setActivationLoading] = useState(true)
 
     // Fetch campaign messages
     const fetchMessages = useCallback(async () => {
@@ -68,10 +93,29 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
         }
     }, [campaignId])
 
-    // Load messages on mount
+    // Fetch activation stats
+    const fetchActivationStats = useCallback(async () => {
+        try {
+            setActivationLoading(true)
+            const response = await fetch(`/api/campaigns/${campaignId}/activation-stats`)
+            
+            if (response.ok) {
+                const result = await response.json()
+                setActivationStats(result.stats)
+                setActivatedDetails(result.activatedDetails || [])
+            }
+        } catch (error) {
+            console.error('Failed to fetch activation stats:', error)
+        } finally {
+            setActivationLoading(false)
+        }
+    }, [campaignId])
+
+    // Load messages and activation stats on mount
     useEffect(() => {
         fetchMessages()
-    }, [fetchMessages])
+        fetchActivationStats()
+    }, [fetchMessages, fetchActivationStats])
 
     // Callback-based refresh - only refresh when analytics_updated_at changes
     useEffect(() => {
@@ -90,6 +134,7 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                     // Fetch latest data
                     const response = await refetch()
                     await fetchMessages()
+                    await fetchActivationStats()
 
                     // Check if analytics_updated_at has changed
                     if (response.success && response.data && response.data.analytics_updated_at !== lastAnalyticsUpdate) {
@@ -117,7 +162,7 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
     const handleManualRefresh = useCallback(async () => {
         setIsRefreshing(true)
         try {
-            await Promise.all([refetch(), fetchMessages()])
+            await Promise.all([refetch(), fetchMessages(), fetchActivationStats()])
             setLastUpdated(new Date())
             toast.success("Campaign data refreshed")
         } catch {
@@ -125,7 +170,7 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
         } finally {
             setIsRefreshing(false)
         }
-    }, [refetch, fetchMessages])
+    }, [refetch, fetchMessages, fetchActivationStats])
 
     const statusColors: Record<string, string> = {
         draft: "bg-gray-500",
@@ -232,6 +277,18 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
         acc[msg.status] = (acc[msg.status] || 0) + 1
         return acc
     }, {} as Record<string, number>)
+
+    // Helper function to format response time
+    const formatResponseTime = (hours: number) => {
+        if (hours < 1) return "< 1 hour"
+        if (hours === 1) return "1 hour"
+        if (hours < 24) return `${hours} hours`
+        if (hours === 24) return "1 day"
+        const days = Math.floor(hours / 24)
+        const remainingHours = hours % 24
+        if (remainingHours === 0) return `${days} day${days > 1 ? 's' : ''}`
+        return `${days}d ${remainingHours}h`
+    }
 
     return (
         <div className="space-y-6">
@@ -426,6 +483,158 @@ export function CampaignDetailsWithAnalytics({ campaignId }: CampaignDetailsWith
                             </div>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Conversation Activation Analytics */}
+            <Card className={isRefreshing ? "opacity-50" : ""}>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <MessageCircle className="h-5 w-5" />
+                        Conversation Activation
+                    </CardTitle>
+                    <CardDescription>
+                        Track how many campaign recipients engaged in conversations
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {activationLoading ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="space-y-2">
+                                    <Skeleton className="h-4 w-20" />
+                                    <Skeleton className="h-8 w-16" />
+                                    <Skeleton className="h-2 w-full" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : activationStats ? (
+                        <div className="space-y-6">
+                            {/* Main Stats Grid */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="h-4 w-4 text-blue-500" />
+                                        <span className="text-sm font-medium">Total Conversations</span>
+                                    </div>
+                                    <div className="text-2xl font-bold">{activationStats.totalConversations}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        Created from campaign
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Eye className="h-4 w-4 text-green-500" />
+                                        <span className="text-sm font-medium">Activated</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-green-600">{activationStats.activatedConversations}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        Customer replied
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <EyeOff className="h-4 w-4 text-gray-500" />
+                                        <span className="text-sm font-medium">Dormant</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-gray-600">{activationStats.dormantConversations}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        No customer reply yet
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4 text-orange-500" />
+                                        <span className="text-sm font-medium">Avg Response Time</span>
+                                    </div>
+                                    <div className="text-2xl font-bold">{formatResponseTime(activationStats.avgResponseTimeHours)}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        Time to first reply
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Activation Rate Progress */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Activation Rate</span>
+                                    <Badge variant={activationStats.activationRate >= 10 ? "default" : activationStats.activationRate >= 5 ? "secondary" : "outline"}>
+                                        {activationStats.activationRate}%
+                                    </Badge>
+                                </div>
+                                <Progress value={activationStats.activationRate} className="h-2" />
+                                <div className="text-xs text-muted-foreground">
+                                    {activationStats.activatedConversations} of {activationStats.totalConversations} conversations activated
+                                </div>
+                            </div>
+
+                            {/* Recent Activations */}
+                            {activatedDetails.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-medium">Recent Activations</h4>
+                                    <div className="space-y-2">
+                                        {activatedDetails.slice(0, 5).map((detail) => (
+                                            <div key={detail.conversationId} className="flex items-center justify-between p-2 border rounded-lg text-sm">
+                                                <div>
+                                                    <div className="font-medium">{detail.contactName}</div>
+                                                    <div className="text-xs text-muted-foreground">{detail.phoneNumber}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-xs text-muted-foreground">
+                                                        Responded after {formatResponseTime(detail.responseDelayHours)}
+                                                    </div>
+                                                    <div className="text-xs">
+                                                        {new Date(detail.activatedAt).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Insights */}
+                            {activationStats.totalConversations > 0 && (
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium">Insights</h4>
+                                    <div className="text-sm text-muted-foreground space-y-1">
+                                        {activationStats.activationRate === 0 && (
+                                            <div className="flex items-center gap-2 text-orange-600">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <span>No customer replies yet. Consider follow-up strategies.</span>
+                                            </div>
+                                        )}
+                                        {activationStats.activationRate > 0 && activationStats.activationRate < 5 && (
+                                            <div className="flex items-center gap-2 text-yellow-600">
+                                                <TrendingUp className="h-4 w-4" />
+                                                <span>Low activation rate. Review message content and targeting.</span>
+                                            </div>
+                                        )}
+                                        {activationStats.activationRate >= 5 && activationStats.activationRate < 15 && (
+                                            <div className="flex items-center gap-2 text-blue-600">
+                                                <TrendingUp className="h-4 w-4" />
+                                                <span>Good activation rate. Monitor for improvements.</span>
+                                            </div>
+                                        )}
+                                        {activationStats.activationRate >= 15 && (
+                                            <div className="flex items-center gap-2 text-green-600">
+                                                <TrendingUp className="h-4 w-4" />
+                                                <span>Excellent activation rate! Campaign resonating well.</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">No activation data available</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

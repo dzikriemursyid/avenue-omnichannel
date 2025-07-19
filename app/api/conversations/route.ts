@@ -34,13 +34,16 @@ export async function GET(request: NextRequest) {
         is_within_window,
         conversation_window_expires_at,
         last_customer_message_at,
+        visibility_status,
+        created_by_campaign,
         contacts!inner (
           id,
           name,
           phone_number,
           profile_picture_url
         )
-      `);
+      `)
+      .eq("visibility_status", "active"); // Only show active conversations in main UI
 
     // Since we removed assigned_agent_id, show all conversations for now
     // Role-based filtering can be re-implemented later if needed

@@ -20,24 +20,51 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceClient();
     const data = await parseFormData(request);
 
+    console.log("📨 Incoming webhook data:", JSON.stringify(data, null, 2));
+
     // Extract key information for incoming messages
     const { MessageSid, From, To, Body, MediaUrl0, MediaContentType0, NumMedia, ProfileName, WaId, SmsMessageSid, ApiVersion, AccountSid } = data;
+
+    console.log("📋 Parsed webhook fields:", {
+      MessageSid,
+      From,
+      To, 
+      Body,
+      NumMedia,
+      ProfileName,
+      WaId
+    });
 
     // Business logic for processing incoming messages (text or media)
     const hasContent = Body || (NumMedia && parseInt(NumMedia) > 0);
 
+    console.log("🔍 Has content:", hasContent);
+
     if (hasContent) {
       // Extract phone number from WhatsApp format
       const phoneNumber = From.replace("whatsapp:", "");
+      
+      console.log("📞 Processing message from phone:", phoneNumber);
 
       try {
         // Find or create contact first
         let contact;
-        const { data: existingContact } = await supabase.from("contacts").select("id, name").eq("phone_number", phoneNumber).single();
+        console.log("🔍 Looking for existing contact...");
+        const { data: existingContact, error: contactLookupError } = await supabase
+          .from("contacts")
+          .select("id, name")
+          .eq("phone_number", phoneNumber)
+          .single();
+          
+        if (contactLookupError && contactLookupError.code !== 'PGRST116') {
+          console.error("❌ Error looking up contact:", contactLookupError);
+        }
 
         if (existingContact) {
           contact = existingContact;
+          console.log("✅ Found existing contact:", contact.id, contact.name);
         } else {
+          console.log("➕ Creating new contact...");
           // Create new contact with system/webhook user
           const { data: newContact, error: contactError } = await supabase
             .from("contacts")
@@ -56,21 +83,60 @@ export async function POST(request: NextRequest) {
             return new NextResponse("", { status: 200 });
           } else {
             contact = newContact;
+            console.log("✅ Created new contact:", contact.id, contact.name);
           }
         }
 
         // Find or create conversation for this contact
         // Note: Customer message can reopen closed conversations (24-hour window policy)
         let conversation;
-        const { data: existingConversation } = await supabase.from("conversations").select("id, contact_id, status").eq("contact_id", contact.id).order("created_at", { ascending: false }).limit(1).single();
+        console.log("🔍 Looking for existing conversation for contact:", contact.id);
+        const { data: existingConversation, error: conversationLookupError } = await supabase
+          .from("conversations")
+          .select("id, contact_id, status, visibility_status, created_by_campaign")
+          .eq("contact_id", contact.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+          
+        if (conversationLookupError && conversationLookupError.code !== 'PGRST116') {
+          console.error("❌ Error looking up conversation:", conversationLookupError);
+        }
 
         if (existingConversation) {
           conversation = existingConversation;
+          console.log("✅ Found existing conversation:", {
+            id: existingConversation.id,
+            status: existingConversation.status,
+            visibility_status: existingConversation.visibility_status,
+            created_by_campaign: existingConversation.created_by_campaign
+          });
+
+          // CONVERSATION ACTIVATION LOGIC: If conversation is dormant (from campaign), activate it
+          if (existingConversation.visibility_status === 'dormant') {
+            console.log(`🔄 Activating dormant conversation ${existingConversation.id} - customer replied to campaign`);
+            
+            const { error: activationError } = await supabase
+              .from("conversations")
+              .update({
+                visibility_status: "active", // Make visible in main UI
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", existingConversation.id);
+              
+            if (activationError) {
+              console.error("❌ Error activating conversation:", activationError);
+            } else {
+              console.log(`✅ Successfully activated conversation ${existingConversation.id} from campaign ${existingConversation.created_by_campaign}`);
+            }
+          } else {
+            console.log(`ℹ️ Conversation ${existingConversation.id} is already ${existingConversation.visibility_status}`);
+          }
 
           // If conversation was closed, it will be reopened by the database trigger
           // The trigger automatically updates status to 'open' and resets the window
         } else {
-          // Create new conversation
+          // Create new conversation (customer-initiated, so active)
           const { data: newConversation, error: conversationError } = await supabase
             .from("conversations")
             .insert({
@@ -79,6 +145,7 @@ export async function POST(request: NextRequest) {
               priority: "normal",
               last_message_at: new Date().toISOString(),
               created_at: new Date().toISOString(),
+              visibility_status: "active", // Customer-initiated conversations are always active
             })
             .select()
             .single();
@@ -168,10 +235,19 @@ export async function POST(request: NextRequest) {
             created_at: new Date().toISOString(),
           };
 
-          const { error: messageError } = await supabase.from("messages").insert(messageData);
+          console.log("💾 Inserting message data:", JSON.stringify(messageData, null, 2));
+          
+          const { data: insertedMessage, error: messageError } = await supabase
+            .from("messages")
+            .insert(messageData)
+            .select()
+            .single();
 
           if (messageError) {
             console.error("❌ Error storing message:", messageError);
+            console.error("❌ Message data that failed:", JSON.stringify(messageData, null, 2));
+          } else {
+            console.log("✅ Successfully stored message:", insertedMessage?.id);
           }
 
           // Update conversation last_message_at (window updates handled by trigger)

@@ -153,135 +153,153 @@ export class TemplateService {
     }
   }
 
-  // Fetch templates with approval status from Twilio
+  // Fetch templates with approval status using Template Search v2
   async fetchTwilioTemplatesWithApproval(): Promise<any[]> {
     try {
-      // Step 1: Get all content templates
-      const allTemplates: any[] = [];
-      let hasMore = true;
-      let pageToken: string | undefined;
+      console.log(`🆕 Using Template Search v2 API for efficient template fetching`);
       
-      while (hasMore) {
-        const options: any = {
-          limit: 100,
-        };
+      const allTemplates: any[] = [];
+      let nextPageUrl: string | null = null;
+      let currentPage = 0;
+      
+      do {
+        currentPage++;
         
-        if (pageToken) {
-          options.pageToken = pageToken;
-        }
-        
-        // Use the correct API to get all content templates
-        console.log(`🔄 Fetching templates from Twilio with options:`, JSON.stringify(options, null, 2));
-        const contents = await twilioClient.content.v1.contents.list(options);
-        console.log(`✅ Received ${contents.length} templates from Twilio:`);
-        contents.forEach((template, index) => {
-          console.log(`  ${index + 1}. Template SID: ${template.sid}, Name: ${template.friendly_name}, Language: ${template.language}`);
+        // Use Template Search v2 ContentAndApprovals endpoint
+        const baseUrl = 'https://content.twilio.com/v2/ContentAndApprovals';
+        const params = new URLSearchParams({
+          PageSize: '100' // Maximum page size
+          // Note: Removed ChannelEligibility filter to get all templates
+          // This will return all templates, then we filter WhatsApp ones in code
         });
         
-        // Step 2: For each template, fetch its approval status
-        const templatesWithApproval = await Promise.all(
-          contents.map(async (template) => {
-            try {
-              // Use HTTP request to fetch approval requests as per Twilio documentation
-              const accountSid = process.env.TWILIO_ACCOUNT_SID;
-              const authToken = process.env.TWILIO_AUTH_TOKEN;
-              
-              if (!accountSid || !authToken) {
-                throw new Error('Twilio credentials not found');
-              }
-              
-              const approvalUrl = `https://content.twilio.com/v1/Content/${template.sid}/ApprovalRequests`;
-              
-              console.log(`🔄 Fetching approval data for template ${template.sid} (${template.friendly_name})`);
-              console.log(`   Request URL: ${approvalUrl}`);
-              console.log(`   Request Headers: Authorization: Basic [REDACTED], Content-Type: application/json`);
-              
-              const response = await fetch(approvalUrl, {
-                method: 'GET',
-                headers: {
-                  'Authorization': `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
-                  'Content-Type': 'application/json'
-                }
-              });
-              
-              console.log(`📥 Response Status: ${response.status} ${response.statusText}`);
-              console.log(`📥 Response Headers:`, Object.fromEntries(response.headers.entries()));
-              
-              if (!response.ok) {
-                const errorText = await response.text();
-                console.log(`❌ Error Response Body:`, errorText);
-                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-              }
-              
-              const approvalData = await response.json();
-              console.log(`✅ Approval Data for ${template.sid}:`, JSON.stringify(approvalData, null, 2));
-              
-              // Attach WhatsApp approval data to template
-              return {
-                ...template,
-                whatsapp: approvalData.whatsapp || null
-              };
-            } catch (approvalError) {
-              console.error(`❌ Failed to fetch approval for template ${template.sid} (${template.friendly_name}):`);
-              console.error(`   Error Type: ${approvalError.constructor.name}`);
-              console.error(`   Error Message: ${approvalError.message}`);
-              if (approvalError.stack) {
-                console.error(`   Stack Trace: ${approvalError.stack}`);
-              }
-              // Return template without approval data if approval fetch fails
-              return {
-                ...template,
-                whatsapp: null
-              };
-            }
-          })
-        );
+        const requestUrl = nextPageUrl || `${baseUrl}?${params.toString()}`;
         
-        allTemplates.push(...templatesWithApproval);
+        console.log(`🔄 Fetching templates (Page ${currentPage}) from Template Search v2:`);
+        console.log(`   Request URL: ${requestUrl}`);
+        console.log(`   Request Headers: Authorization: Basic [REDACTED], Content-Type: application/json`);
         
-        console.log(`📊 Summary for this page:`);
-        console.log(`   - Templates fetched: ${contents.length}`);
-        console.log(`   - Templates with approval data: ${templatesWithApproval.filter(t => t.whatsapp).length}`);
-        console.log(`   - Templates without approval data: ${templatesWithApproval.filter(t => !t.whatsapp).length}`);
+        const accountSid = process.env.TWILIO_ACCOUNT_SID;
+        const authToken = process.env.TWILIO_AUTH_TOKEN;
         
-        if (contents.length < options.limit) {
-          hasMore = false;
-        } else {
-          // Check if there's a next page token from the last item
-          hasMore = false; // For now, let's disable pagination to test
+        if (!accountSid || !authToken) {
+          throw new Error('Twilio credentials not found');
         }
-      }
+        
+        const response = await fetch(requestUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`📥 Response Status: ${response.status} ${response.statusText}`);
+        console.log(`📥 Response Headers:`, Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log(`❌ Error Response Body:`, errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+        }
+        
+        const responseData = await response.json();
+        console.log(`✅ Template Search v2 Response:`, JSON.stringify(responseData, null, 2));
+        
+        const allResponseTemplates = responseData.contents || [];
+        console.log(`✅ Received ${allResponseTemplates.length} total templates from Template Search v2 (Page ${currentPage})`);
+        
+        // Filter only WhatsApp templates based on v2 response structure
+        const whatsappTemplates = allResponseTemplates.filter((template: any) => {
+          // In v2, WhatsApp approval data is in approval_requests field
+          const hasApprovalRequests = template.approval_requests !== undefined;
+          const isWhatsAppType = template.types && Object.keys(template.types).some(type => 
+            type.includes('twilio/') || type.includes('whatsapp/')
+          );
+          
+          console.log(`   Template ${template.sid}: approval_requests=${!!hasApprovalRequests}, types=${Object.keys(template.types || {}).join(', ')}, isWhatsApp=${hasApprovalRequests && isWhatsAppType}`);
+          
+          return hasApprovalRequests && isWhatsAppType;
+        });
+        
+        console.log(`📝 Filtered to ${whatsappTemplates.length} WhatsApp templates:`);
+        
+        whatsappTemplates.forEach((template: any, index: number) => {
+          // In v2, WhatsApp approval data is in approval_requests field
+          const whatsappApproval = template.approval_requests || null;
+          const templateName = template.friendly_name || whatsappApproval?.name || 'Unknown';
+          const approvalStatus = whatsappApproval?.status || 'unknown';
+          const category = whatsappApproval?.category || 'unknown';
+          
+          console.log(`  ${index + 1}. Template SID: ${template.sid}`);
+          console.log(`     Name: ${templateName}`);
+          console.log(`     Language: ${template.language}`);
+          console.log(`     WhatsApp Status: ${approvalStatus}`);
+          console.log(`     WhatsApp Category: ${category}`);
+          console.log(`     Content Type: ${whatsappApproval?.content_type || 'unknown'}`);
+          
+          // Transform v2 response to match our expected format
+          const transformedTemplate = {
+            ...template,
+            whatsapp: whatsappApproval // Extract WhatsApp approval data from approval_requests
+          };
+          
+          allTemplates.push(transformedTemplate);
+        });
+        
+        // Handle pagination
+        const meta = responseData.meta || {};
+        nextPageUrl = meta.next_page_url || null;
+        
+        console.log(`📊 Page ${currentPage} Summary:`);
+        console.log(`   - Total templates fetched: ${allResponseTemplates.length}`);
+        console.log(`   - WhatsApp templates filtered: ${whatsappTemplates.length}`);
+        console.log(`   - Has next page: ${nextPageUrl ? 'Yes' : 'No'}`);
+        
+        // Safety check to prevent infinite loops
+        if (currentPage >= 10) {
+          console.warn(`⚠️ Reached maximum page limit (10), stopping pagination`);
+          break;
+        }
+        
+      } while (nextPageUrl);
       
-      console.log(`🎉 FINAL SUMMARY:`);
+      console.log(`🎉 TEMPLATE SEARCH v2 FINAL SUMMARY:`);
+      console.log(`   - Total pages fetched: ${currentPage}`);
       console.log(`   - Total templates fetched: ${allTemplates.length}`);
       console.log(`   - Templates with WhatsApp approval data: ${allTemplates.filter(t => t.whatsapp).length}`);
       console.log(`   - Templates without WhatsApp approval data: ${allTemplates.filter(t => !t.whatsapp).length}`);
       
-      // Log each template's approval status
+      // Log each template's details
       allTemplates.forEach((template, index) => {
         const whatsappStatus = template.whatsapp?.status || 'NO_DATA';
         const whatsappCategory = template.whatsapp?.category || 'NO_CATEGORY';
-        console.log(`   ${index + 1}. ${template.friendly_name} (${template.sid}) - Status: ${whatsappStatus}, Category: ${whatsappCategory}`);
+        const templateName = template.friendly_name || template.whatsapp?.name || 'Unknown';
+        console.log(`   ${index + 1}. ${templateName} (${template.sid}) - Status: ${whatsappStatus}, Category: ${whatsappCategory}`);
       });
       
       return allTemplates;
+      
     } catch (error) {
-      console.error("❌ CRITICAL ERROR in fetchTwilioTemplatesWithApproval:");
+      console.error("❌ CRITICAL ERROR in fetchTwilioTemplatesWithApproval (v2):");
       console.error(`   Error Type: ${error.constructor.name}`);
       console.error(`   Error Message: ${error.message}`);
       if (error.stack) {
         console.error(`   Stack Trace: ${error.stack}`);
       }
-      throw new Error(`Failed to fetch templates with approval status: ${error}`);
+      throw new Error(`Failed to fetch templates with Template Search v2: ${error}`);
     }
   }
 
-  // Sync templates from Twilio to local database
+  // Sync templates from Twilio to local database using Template Search v2
   async syncTemplatesFromTwilio(userId: string): Promise<{ synced: number; errors: string[]; deleted: number }> {
+    console.log(`🚀 Starting template sync with Template Search v2 for user: ${userId}`);
     if (!this.supabase) await this.init();
 
     try {
+      console.log(`🔄 Step 1: Fetching templates using Template Search v2...`);
       const twilioTemplates = await this.fetchTwilioTemplatesWithApproval();
+      console.log(`✅ Step 1 Complete: Retrieved ${twilioTemplates.length} templates from Template Search v2`);
       
       let synced = 0;
       let deleted = 0;
@@ -461,10 +479,11 @@ export class TemplateService {
       }
 
       
-      console.log(`🎉 SYNC COMPLETED:`);
+      console.log(`🎉 TEMPLATE SEARCH v2 SYNC COMPLETED:`);
       console.log(`   - Templates synced: ${synced}`);
       console.log(`   - Templates deleted: ${deleted}`);
       console.log(`   - Errors encountered: ${errors.length}`);
+      console.log(`   - API Efficiency: Used Template Search v2 (single API call vs multiple calls)`);
       if (errors.length > 0) {
         console.log(`   - Error details:`);
         errors.forEach((error, index) => {
