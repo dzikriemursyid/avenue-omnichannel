@@ -156,7 +156,7 @@ export class TemplateService {
   // Fetch templates with approval status from Twilio
   async fetchTwilioTemplatesWithApproval(): Promise<any[]> {
     try {
-      
+      // Step 1: Get all content templates
       const allTemplates: any[] = [];
       let hasMore = true;
       let pageToken: string | undefined;
@@ -170,22 +170,108 @@ export class TemplateService {
           options.pageToken = pageToken;
         }
         
+        // Use the correct API to get all content templates
+        console.log(`🔄 Fetching templates from Twilio with options:`, JSON.stringify(options, null, 2));
+        const contents = await twilioClient.content.v1.contents.list(options);
+        console.log(`✅ Received ${contents.length} templates from Twilio:`);
+        contents.forEach((template, index) => {
+          console.log(`  ${index + 1}. Template SID: ${template.sid}, Name: ${template.friendly_name}, Language: ${template.language}`);
+        });
         
-        const contentAndApprovals = await twilioClient.content.v1.contentAndApprovals.list(options);
+        // Step 2: For each template, fetch its approval status
+        const templatesWithApproval = await Promise.all(
+          contents.map(async (template) => {
+            try {
+              // Use HTTP request to fetch approval requests as per Twilio documentation
+              const accountSid = process.env.TWILIO_ACCOUNT_SID;
+              const authToken = process.env.TWILIO_AUTH_TOKEN;
+              
+              if (!accountSid || !authToken) {
+                throw new Error('Twilio credentials not found');
+              }
+              
+              const approvalUrl = `https://content.twilio.com/v1/Content/${template.sid}/ApprovalRequests`;
+              
+              console.log(`🔄 Fetching approval data for template ${template.sid} (${template.friendly_name})`);
+              console.log(`   Request URL: ${approvalUrl}`);
+              console.log(`   Request Headers: Authorization: Basic [REDACTED], Content-Type: application/json`);
+              
+              const response = await fetch(approvalUrl, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              console.log(`📥 Response Status: ${response.status} ${response.statusText}`);
+              console.log(`📥 Response Headers:`, Object.fromEntries(response.headers.entries()));
+              
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.log(`❌ Error Response Body:`, errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+              }
+              
+              const approvalData = await response.json();
+              console.log(`✅ Approval Data for ${template.sid}:`, JSON.stringify(approvalData, null, 2));
+              
+              // Attach WhatsApp approval data to template
+              return {
+                ...template,
+                whatsapp: approvalData.whatsapp || null
+              };
+            } catch (approvalError) {
+              console.error(`❌ Failed to fetch approval for template ${template.sid} (${template.friendly_name}):`);
+              console.error(`   Error Type: ${approvalError.constructor.name}`);
+              console.error(`   Error Message: ${approvalError.message}`);
+              if (approvalError.stack) {
+                console.error(`   Stack Trace: ${approvalError.stack}`);
+              }
+              // Return template without approval data if approval fetch fails
+              return {
+                ...template,
+                whatsapp: null
+              };
+            }
+          })
+        );
         
+        allTemplates.push(...templatesWithApproval);
         
-        allTemplates.push(...contentAndApprovals);
+        console.log(`📊 Summary for this page:`);
+        console.log(`   - Templates fetched: ${contents.length}`);
+        console.log(`   - Templates with approval data: ${templatesWithApproval.filter(t => t.whatsapp).length}`);
+        console.log(`   - Templates without approval data: ${templatesWithApproval.filter(t => !t.whatsapp).length}`);
         
-        if (contentAndApprovals.length < options.limit) {
+        if (contents.length < options.limit) {
           hasMore = false;
         } else {
-          hasMore = false;
+          // Check if there's a next page token from the last item
+          hasMore = false; // For now, let's disable pagination to test
         }
       }
       
+      console.log(`🎉 FINAL SUMMARY:`);
+      console.log(`   - Total templates fetched: ${allTemplates.length}`);
+      console.log(`   - Templates with WhatsApp approval data: ${allTemplates.filter(t => t.whatsapp).length}`);
+      console.log(`   - Templates without WhatsApp approval data: ${allTemplates.filter(t => !t.whatsapp).length}`);
+      
+      // Log each template's approval status
+      allTemplates.forEach((template, index) => {
+        const whatsappStatus = template.whatsapp?.status || 'NO_DATA';
+        const whatsappCategory = template.whatsapp?.category || 'NO_CATEGORY';
+        console.log(`   ${index + 1}. ${template.friendly_name} (${template.sid}) - Status: ${whatsappStatus}, Category: ${whatsappCategory}`);
+      });
+      
       return allTemplates;
     } catch (error) {
-      console.error("❌ Error fetching templates with approval status:", error);
+      console.error("❌ CRITICAL ERROR in fetchTwilioTemplatesWithApproval:");
+      console.error(`   Error Type: ${error.constructor.name}`);
+      console.error(`   Error Message: ${error.message}`);
+      if (error.stack) {
+        console.error(`   Stack Trace: ${error.stack}`);
+      }
       throw new Error(`Failed to fetch templates with approval status: ${error}`);
     }
   }
@@ -195,7 +281,7 @@ export class TemplateService {
     if (!this.supabase) await this.init();
 
     try {
-      const twilioTemplates = await this.fetchTwilioTemplates();
+      const twilioTemplates = await this.fetchTwilioTemplatesWithApproval();
       
       let synced = 0;
       let deleted = 0;
@@ -270,19 +356,35 @@ export class TemplateService {
             .eq("template_id", template.sid)
             .single();
 
+          // Extract WhatsApp approval data
+          const whatsappApproval = template.whatsapp || {};
+          const approvalStatus = this.mapWhatsAppStatus(whatsappApproval.status);
+          const whatsappCategory = whatsappApproval.category || null;
+          
+          // Use WhatsApp approval name as fallback if friendly_name is undefined
+          const templateName = template.friendly_name || whatsappApproval.name || template.name || `Template_${template.sid.slice(-8)}`;
+          
+          console.log(`📝 Processing template: ${templateName} (${template.sid})`);
+          console.log(`   - Template friendly_name: ${template.friendly_name || 'UNDEFINED'}`);
+          console.log(`   - WhatsApp approval name: ${whatsappApproval.name || 'UNDEFINED'}`);
+          console.log(`   - Final template name: ${templateName}`);
+          console.log(`   - WhatsApp Status: ${whatsappApproval.status || 'NOT_AVAILABLE'} -> Mapped: ${approvalStatus}`);
+          console.log(`   - WhatsApp Category: ${whatsappCategory || 'NOT_AVAILABLE'}`);
+          console.log(`   - Extracted Category: ${this.extractCategoryFromWhatsApp(whatsappCategory, templateName)}`);
+          
           const templateData = {
-            name: template.friendly_name,
+            name: templateName,
             template_id: template.sid,
-            category: this.categorizeTemplate(template.friendly_name),
+            category: this.extractCategoryFromWhatsApp(whatsappCategory, templateName),
             language_code: template.language,
             body_text: userFriendlyBodyText, // Use user-friendly content
             header_text: templateContent.title || null,
             footer_text: templateContent.subtitle || null,
             button_config: templateContent.actions || null,
             variables,
-            status: "approved", // Assume approved if it exists in Twilio
-            twilio_approval_status: "approved",
-            twilio_approval_date: template.date_updated,
+            status: approvalStatus,
+            twilio_approval_status: approvalStatus,
+            twilio_approval_date: whatsappApproval.date_approved || template.date_updated,
             template_type: extractedTemplateType,
             media_urls: mediaUrls,
             twilio_metadata: {
@@ -291,39 +393,93 @@ export class TemplateService {
               date_updated: template.date_updated,
               variables: template.variables, // Store original Twilio variables for reference
               original_body_text: originalBodyText, // Store original content for reference
+              whatsapp_approval: whatsappApproval, // Store full WhatsApp approval data
             },
             created_by: userId,
             updated_at: new Date().toISOString(),
           };
 
 
+          console.log(`💾 Database Operation: ${existing ? 'UPDATE' : 'INSERT'} template ${templateName}`);
+          console.log(`💾 Template Data:`, JSON.stringify({
+            name: templateData.name,
+            template_id: templateData.template_id,
+            category: templateData.category,
+            status: templateData.status,
+            language_code: templateData.language_code
+          }, null, 2));
+          
           if (existing) {
             // Update existing template
-            await this.supabase
+            console.log(`🔄 Updating existing template with ID: ${existing.id}`);
+            const { error: updateError } = await this.supabase
               .from("message_templates")
               .update(templateData)
               .eq("id", existing.id);
+            
+            if (updateError) {
+              console.error(`❌ Database UPDATE error for template ${templateName}:`, updateError);
+              throw new Error(`Failed to update template ${templateName}: ${updateError.message}`);
+            }
+            console.log(`✅ Successfully UPDATED template: ${templateName}`);
           } else {
             // Create new template
-            await this.supabase
+            console.log(`🆕 Creating new template: ${templateName}`);
+            const { error: insertError, data: insertData } = await this.supabase
               .from("message_templates")
               .insert({
                 ...templateData,
                 created_at: new Date().toISOString(),
+              })
+              .select('id');
+            
+            if (insertError) {
+              console.error(`❌ Database INSERT error for template ${templateName}:`, insertError);
+              console.error(`❌ Insert Error Details:`, {
+                code: insertError.code,
+                message: insertError.message,
+                details: insertError.details,
+                hint: insertError.hint
               });
+              throw new Error(`Failed to insert template ${templateName}: ${insertError.message}`);
+            }
+            console.log(`✅ Successfully INSERTED template: ${templateName} with ID: ${insertData?.[0]?.id}`);
           }
 
           synced++;
+          console.log(`✅ Template sync completed: ${templateName} (${templateData.status});`)
         } catch (error) {
-          console.error(`❌ Error processing template ${template.friendly_name}:`, error);
-          errors.push(`Failed to sync template ${template.friendly_name}: ${error}`);
+          const templateName = template.friendly_name || template.whatsapp?.name || template.name || `Template_${template.sid.slice(-8)}`;
+          console.error(`❌ Error processing template ${templateName} (${template.sid}):`);
+          console.error(`   Error Type: ${error.constructor.name}`);
+          console.error(`   Error Message: ${error.message}`);
+          if (error.stack) {
+            console.error(`   Stack Trace: ${error.stack}`);
+          }
+          errors.push(`Failed to sync template ${templateName}: ${error.message}`);
         }
       }
 
       
+      console.log(`🎉 SYNC COMPLETED:`);
+      console.log(`   - Templates synced: ${synced}`);
+      console.log(`   - Templates deleted: ${deleted}`);
+      console.log(`   - Errors encountered: ${errors.length}`);
+      if (errors.length > 0) {
+        console.log(`   - Error details:`);
+        errors.forEach((error, index) => {
+          console.log(`     ${index + 1}. ${error}`);
+        });
+      }
+      
       return { synced, errors, deleted };
     } catch (error) {
-      console.error("Error syncing templates:", error);
+      console.error("❌ CRITICAL ERROR in syncTemplatesFromTwilio:");
+      console.error(`   Error Type: ${error.constructor.name}`);
+      console.error(`   Error Message: ${error.message}`);
+      if (error.stack) {
+        console.error(`   Stack Trace: ${error.stack}`);
+      }
       throw error;
     }
   }
@@ -677,8 +833,78 @@ export class TemplateService {
     return mediaUrls;
   }
 
-  // Helper: Categorize template based on name
-  private categorizeTemplate(name: string): "marketing" | "utility" | "authentication" {
+  // Helper: Map WhatsApp approval status to our local status
+  private mapWhatsAppStatus(whatsappStatus: string | null | undefined): "approved" | "pending" | "rejected" {
+    if (!whatsappStatus || typeof whatsappStatus !== 'string') {
+      return 'pending';
+    }
+    
+    const status = whatsappStatus.toLowerCase();
+    
+    // Map WhatsApp statuses to our simplified statuses
+    switch (status) {
+      case 'approved':
+        return 'approved';
+      case 'rejected':
+      case 'paused':
+      case 'disabled':
+        return 'rejected';
+      case 'unsubmitted':
+      case 'received':
+      case 'pending':
+      default:
+        return 'pending';
+    }
+  }
+
+  // Helper: Extract category from WhatsApp approval data, fallback to name-based categorization
+  private extractCategoryFromWhatsApp(whatsappCategory: string | null, templateName: string | null | undefined): "marketing" | "utility" | "authentication" {
+    // First try to map WhatsApp categories to our categories
+    if (whatsappCategory) {
+      const category = whatsappCategory.toUpperCase();
+      
+      // Real WhatsApp category mapping based on official categories
+      // Authentication categories
+      if (category.includes('AUTHENTICATION') || 
+          category.includes('OTP') || 
+          category.includes('VERIFICATION')) {
+        return 'authentication';
+      }
+      
+      // Marketing categories
+      if (category.includes('MARKETING') || 
+          category.includes('PROMOTION') || 
+          category.includes('PROMOTIONAL')) {
+        return 'marketing';
+      }
+      
+      // Utility categories (most WhatsApp categories are utility-based)
+      if (category.includes('UTILITY') || 
+          category.includes('ACCOUNT_UPDATE') || 
+          category.includes('PAYMENT_UPDATE') || 
+          category.includes('PERSONAL_FINANCE_UPDATE') || 
+          category.includes('SHIPPING_UPDATE') || 
+          category.includes('RESERVATION_UPDATE') || 
+          category.includes('ISSUE_RESOLUTION') || 
+          category.includes('APPOINTMENT_UPDATE') || 
+          category.includes('TRANSPORTATION_UPDATE') || 
+          category.includes('TICKET_UPDATE') || 
+          category.includes('ALERT_UPDATE') || 
+          category.includes('AUTO_REPLY')) {
+        return 'utility';
+      }
+    }
+    
+    // Fallback to name-based categorization
+    return this.categorizeTemplate(templateName || 'unknown');
+  }
+
+  // Helper: Categorize template based on name (fallback method)
+  private categorizeTemplate(name: string | null | undefined): "marketing" | "utility" | "authentication" {
+    if (!name || typeof name !== 'string') {
+      return "utility"; // Default fallback
+    }
+    
     const lowerName = name.toLowerCase();
 
     if (lowerName.includes("otp") || lowerName.includes("auth") || lowerName.includes("verify")) {
