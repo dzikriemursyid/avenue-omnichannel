@@ -100,11 +100,43 @@ fi
 
 log "🆕 New commit: $NEW_COMMIT_SHORT - $COMMIT_MESSAGE"
 
-# Stop PM2 application and kill any orphaned processes
+# Stop PM2 application with timeout and better error handling
 log "⏹️ Stopping PM2 application..."
-pm2 stop "$PM2_APP_NAME" || {
-    warning "Failed to stop PM2 application via PM2, continuing..."
+
+# Function to stop PM2 with timeout
+stop_pm2_with_timeout() {
+    local timeout=30
+    local count=0
+    
+    # Try graceful stop first
+    if pm2 stop "$PM2_APP_NAME" 2>/dev/null; then
+        log "✅ PM2 application stopped gracefully"
+        return 0
+    fi
+    
+    warning "PM2 graceful stop failed, trying force stop..."
+    
+    # Wait for process to stop with timeout
+    while [ $count -lt $timeout ]; do
+        if ! pm2 describe "$PM2_APP_NAME" 2>/dev/null | grep -q "online"; then
+            log "✅ PM2 application stopped"
+            return 0
+        fi
+        sleep 1
+        count=$((count + 1))
+        if [ $((count % 10)) -eq 0 ]; then
+            log "⏳ Waiting for PM2 to stop... ($count/$timeout seconds)"
+        fi
+    done
+    
+    warning "PM2 stop timeout reached, forcing process termination"
+    return 1
 }
+
+# Try to stop PM2 with timeout
+if ! stop_pm2_with_timeout; then
+    warning "PM2 stop timeout, proceeding with force kill..."
+fi
 
 # Kill any orphaned Next.js processes on port 3000
 log "🔍 Checking for orphaned processes on port 3000..."
@@ -112,7 +144,25 @@ ORPHANED_PID=$(lsof -ti:3000 2>/dev/null || true)
 if [ ! -z "$ORPHANED_PID" ]; then
     log "💀 Killing orphaned process(es): $ORPHANED_PID"
     kill -9 $ORPHANED_PID 2>/dev/null || true
-    sleep 2
+    sleep 3
+    
+    # Verify port is free
+    STILL_RUNNING=$(lsof -ti:3000 2>/dev/null || true)
+    if [ ! -z "$STILL_RUNNING" ]; then
+        error "Failed to kill process on port 3000: $STILL_RUNNING"
+        # Try one more time with SIGKILL
+        kill -9 $STILL_RUNNING 2>/dev/null || true
+        sleep 2
+    fi
+fi
+
+# Ensure port 3000 is completely free before proceeding
+log "🔍 Final port check..."
+if lsof -ti:3000 >/dev/null 2>&1; then
+    error "Port 3000 still occupied after cleanup attempts"
+    exit 1
+else
+    log "✅ Port 3000 is free, proceeding with deployment"
 fi
 
 # Install/update dependencies
@@ -139,36 +189,90 @@ pnpm build || {
     exit 1
 }
 
-# Restart PM2 application with better error handling
-log "🚀 Restarting PM2 application..."
+# Restart PM2 application with comprehensive error handling
+log "🚀 Starting PM2 application..."
 
-# First try restart, if fails try start
-if ! pm2 restart "$PM2_APP_NAME" 2>/dev/null; then
-    warning "PM2 restart failed, trying to start application..."
-    if ! pm2 start "$PM2_APP_NAME" 2>/dev/null; then
-        warning "PM2 start also failed, trying to start from ecosystem config..."
-        if ! pm2 start ecosystem.config.js 2>/dev/null; then
-            error "All PM2 start methods failed. Checking port conflict..."
+# Function to start PM2 with retries and timeout
+start_pm2_with_retries() {
+    local max_retries=3
+    local retry_count=0
+    local start_timeout=60
+    
+    while [ $retry_count -lt $max_retries ]; do
+        retry_count=$((retry_count + 1))
+        log "🔄 PM2 start attempt $retry_count/$max_retries"
+        
+        # Try different start methods in order
+        if pm2 start ecosystem.config.js 2>/dev/null; then
+            log "✅ PM2 started using ecosystem config"
             
-            # Check if port is still in use
+            # Wait for application to be ready with timeout
+            local wait_count=0
+            while [ $wait_count -lt $start_timeout ]; do
+                if pm2 describe "$PM2_APP_NAME" 2>/dev/null | grep -q "online"; then
+                    log "✅ PM2 application is online"
+                    return 0
+                fi
+                sleep 1
+                wait_count=$((wait_count + 1))
+                if [ $((wait_count % 15)) -eq 0 ]; then
+                    log "⏳ Waiting for PM2 to start... ($wait_count/$start_timeout seconds)"
+                fi
+            done
+            
+            warning "PM2 start timeout reached on attempt $retry_count"
+        else
+            warning "PM2 start failed on attempt $retry_count"
+        fi
+        
+        # Clean up for retry
+        if [ $retry_count -lt $max_retries ]; then
+            log "🧹 Cleaning up for retry..."
+            pm2 delete "$PM2_APP_NAME" 2>/dev/null || true
+            
+            # Kill any processes on port 3000
             PORT_USER=$(lsof -ti:3000 2>/dev/null || true)
             if [ ! -z "$PORT_USER" ]; then
-                error "Port 3000 still in use by process: $PORT_USER"
-                log "💀 Force killing process on port 3000..."
+                log "💀 Killing process on port 3000: $PORT_USER"
                 kill -9 $PORT_USER 2>/dev/null || true
-                sleep 3
-                
-                # Try one more time
-                if ! pm2 start ecosystem.config.js; then
-                    error "Final PM2 start attempt failed"
-                    exit 1
-                fi
-            else
-                error "PM2 restart failed but port is free. Check PM2 logs: pm2 logs $PM2_APP_NAME"
-                exit 1
+                sleep 2
             fi
+            
+            sleep 3
+        fi
+    done
+    
+    error "All PM2 start attempts failed after $max_retries retries"
+    return 1
+}
+
+# Try to start PM2 with retries
+if ! start_pm2_with_retries; then
+    error "Failed to start PM2 application"
+    
+    # Attempt rollback
+    if [ -d "$BACKUP_DIR/$BACKUP_NAME" ]; then
+        log "🔄 Attempting rollback to backup: $BACKUP_NAME"
+        
+        # Stop any running processes
+        pm2 delete "$PM2_APP_NAME" 2>/dev/null || true
+        PORT_USER=$(lsof -ti:3000 2>/dev/null || true)
+        if [ ! -z "$PORT_USER" ]; then
+            kill -9 $PORT_USER 2>/dev/null || true
+        fi
+        
+        # Restore backup
+        cp -r "$BACKUP_DIR/$BACKUP_NAME/"* "$PROJECT_DIR/"
+        
+        # Try to start with backup
+        if pm2 start ecosystem.config.js 2>/dev/null; then
+            log "✅ Rollback successful, application restored"
+        else
+            error "Rollback failed, manual intervention required"
         fi
     fi
+    
+    exit 1
 fi
 
 log "✅ PM2 application started successfully"
@@ -217,14 +321,42 @@ log "   - Message: $COMMIT_MESSAGE"
 log "   - Deployed at: $(date)"
 log "   - Backup: $BACKUP_NAME"
 
-# Send notification (optional)
-if command -v curl &> /dev/null; then
-    info "📲 Sending deployment notification..."
-    # You can add webhook notification here if needed
-    # curl -X POST -H "Content-Type: application/json" \
-    #      -d '{"text":"Deployment completed: '"$NEW_COMMIT_SHORT"'"}' \
-    #      "$SLACK_WEBHOOK_URL" || true
-fi
+# Send deployment status notification
+send_deployment_notification() {
+    local status="$1"
+    local message="$2"
+    local details="$3"
+    
+    # Log to deployment status file
+    local status_file="/var/log/deployment-status.json"
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    
+    cat > "$status_file" << EOF
+{
+  "timestamp": "$timestamp",
+  "status": "$status",
+  "repository": "avenue-omnichannel",
+  "branch": "production",
+  "commit": "$NEW_COMMIT_SHORT",
+  "commit_message": "$COMMIT_MESSAGE",
+  "message": "$message",
+  "details": "$details",
+  "backup": "$BACKUP_NAME"
+}
+EOF
+    
+    info "📊 Deployment status saved to $status_file"
+    
+    # Optional: Send to external monitoring (uncomment if needed)
+    # if [ ! -z "$DEPLOYMENT_WEBHOOK_URL" ]; then
+    #     curl -X POST -H "Content-Type: application/json" \
+    #          -d "@$status_file" \
+    #          "$DEPLOYMENT_WEBHOOK_URL" || true
+    # fi
+}
+
+# Send success notification
+send_deployment_notification "success" "Deployment completed successfully" "Application is running on port 3000"
 
 log "✅ Auto-deployment process completed successfully!"
 exit 0
