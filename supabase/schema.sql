@@ -626,6 +626,7 @@ CREATE TABLE IF NOT EXISTS "public"."campaigns" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "template_variables" "jsonb" DEFAULT '{}'::"jsonb",
     "variable_source" "text" DEFAULT 'manual'::"text",
+    "header_text" "text",
     CONSTRAINT "campaigns_schedule_type_check" CHECK (("schedule_type" = ANY (ARRAY['immediate'::"text", 'scheduled'::"text", 'recurring'::"text"]))),
     CONSTRAINT "campaigns_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'scheduled'::"text", 'running'::"text", 'completed'::"text", 'paused'::"text", 'failed'::"text"]))),
     CONSTRAINT "campaigns_variable_source_check" CHECK (("variable_source" = ANY (ARRAY['manual'::"text", 'contact'::"text"]))),
@@ -641,6 +642,10 @@ COMMENT ON COLUMN "public"."campaigns"."template_variables" IS 'Dynamic template
 
 
 COMMENT ON COLUMN "public"."campaigns"."variable_source" IS 'Source for template variables: manual (user input) or contact (from contact data)';
+
+
+
+COMMENT ON COLUMN "public"."campaigns"."header_text" IS 'Campaign-specific header image URL that overrides template default header_text';
 
 
 
@@ -986,6 +991,10 @@ CREATE INDEX "idx_campaigns_active_status" ON "public"."campaigns" USING "btree"
 
 
 CREATE INDEX "idx_campaigns_created_by" ON "public"."campaigns" USING "btree" ("created_by");
+
+
+
+CREATE INDEX "idx_campaigns_header_text" ON "public"."campaigns" USING "btree" ("header_text") WHERE ("header_text" IS NOT NULL);
 
 
 
