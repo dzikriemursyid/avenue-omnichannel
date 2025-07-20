@@ -35,8 +35,49 @@ info() {
     echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')] INFO:${NC} $1" | tee -a "$LOG_FILE"
 }
 
+# Enhanced PM2 daemon check
+check_and_fix_pm2_daemon() {
+    log "🔍 Checking PM2 daemon status..."
+    
+    if ! pm2 ping > /dev/null 2>&1; then
+        warning "PM2 daemon not responding, attempting to fix..."
+        
+        # Kill any existing PM2 daemon
+        pkill -f "PM2" 2>/dev/null || true
+        pkill -f "pm2" 2>/dev/null || true
+        
+        # Remove PM2 socket file
+        rm -f ~/.pm2/rpc.sock ~/.pm2/pub.sock 2>/dev/null || true
+        
+        # Start fresh PM2 daemon
+        pm2 kill 2>/dev/null || true
+        sleep 2
+        
+        # Resurrect saved processes
+        pm2 resurrect 2>/dev/null || true
+        sleep 3
+        
+        if ! pm2 ping > /dev/null 2>&1; then
+            error "Failed to restart PM2 daemon"
+            return 1
+        fi
+        
+        log "✅ PM2 daemon restarted successfully"
+    else
+        log "✅ PM2 daemon is responsive"
+    fi
+    
+    return 0
+}
+
 # Start deployment
 log "🚀 Starting auto-deployment process..."
+
+# Check PM2 daemon health first
+check_and_fix_pm2_daemon || {
+    error "PM2 daemon issues detected, cannot proceed"
+    exit 1
+}
 
 # Change to project directory
 cd "$PROJECT_DIR" || {
@@ -103,34 +144,92 @@ log "🆕 New commit: $NEW_COMMIT_SHORT - $COMMIT_MESSAGE"
 # Stop PM2 application with timeout and better error handling
 log "⏹️ Stopping PM2 application..."
 
-# Function to stop PM2 with timeout
+# Enhanced PM2 stop function with multiple fallback strategies
 stop_pm2_with_timeout() {
     local timeout=30
     local count=0
     
-    # Try graceful stop first
-    if pm2 stop "$PM2_APP_NAME" 2>/dev/null; then
+    log "⏹️ Attempting to stop PM2 application: $PM2_APP_NAME"
+    
+    # Strategy 1: Try graceful stop with PM2
+    if timeout 10 pm2 stop "$PM2_APP_NAME" 2>/dev/null; then
         log "✅ PM2 application stopped gracefully"
         return 0
     fi
     
-    warning "PM2 graceful stop failed, trying force stop..."
+    warning "PM2 graceful stop failed or timed out, trying alternative methods..."
     
-    # Wait for process to stop with timeout
-    while [ $count -lt $timeout ]; do
-        if ! pm2 describe "$PM2_APP_NAME" 2>/dev/null | grep -q "online"; then
-            log "✅ PM2 application stopped"
-            return 0
-        fi
-        sleep 1
-        count=$((count + 1))
-        if [ $((count % 10)) -eq 0 ]; then
-            log "⏳ Waiting for PM2 to stop... ($count/$timeout seconds)"
-        fi
-    done
+    # Strategy 2: Get PM2 process details and force stop
+    local pm2_info=$(pm2 jlist 2>/dev/null || echo "[]")
+    local pm2_pid=$(echo "$pm2_info" | jq -r ".[] | select(.name==\"$PM2_APP_NAME\") | .pid" 2>/dev/null || echo "")
+    local pm2_pm_id=$(echo "$pm2_info" | jq -r ".[] | select(.name==\"$PM2_APP_NAME\") | .pm_id" 2>/dev/null || echo "")
     
-    warning "PM2 stop timeout reached, forcing process termination"
-    return 1
+    if [ ! -z "$pm2_pid" ] && [ "$pm2_pid" != "null" ]; then
+        log "Found PM2 process PID: $pm2_pid (pm_id: $pm2_pm_id)"
+        
+        # Try to stop via pm_id
+        if [ ! -z "$pm2_pm_id" ] && [ "$pm2_pm_id" != "null" ]; then
+            timeout 5 pm2 stop "$pm2_pm_id" 2>/dev/null || true
+        fi
+        
+        # Send SIGTERM then SIGKILL to the actual process
+        if ps -p "$pm2_pid" > /dev/null 2>&1; then
+            log "Sending SIGTERM to process $pm2_pid"
+            kill -TERM "$pm2_pid" 2>/dev/null || true
+            sleep 5
+            
+            if ps -p "$pm2_pid" > /dev/null 2>&1; then
+                log "Process still running, sending SIGKILL"
+                kill -KILL "$pm2_pid" 2>/dev/null || true
+                sleep 2
+            fi
+        fi
+    fi
+    
+    # Strategy 3: Delete from PM2 process list
+    log "Removing from PM2 process list..."
+    pm2 delete "$PM2_APP_NAME" 2>/dev/null || true
+    
+    # Strategy 4: Find and kill all Node.js processes running from our directory
+    log "Checking for Node.js processes in project directory..."
+    local node_pids=$(ps aux | grep -E "node.*$PROJECT_DIR" | grep -v grep | awk '{print $2}' || true)
+    if [ ! -z "$node_pids" ]; then
+        log "Found Node.js processes: $node_pids"
+        for pid in $node_pids; do
+            kill -KILL "$pid" 2>/dev/null || true
+        done
+        sleep 2
+    fi
+    
+    # Strategy 5: Kill any pnpm processes related to our app
+    local pnpm_pids=$(ps aux | grep -E "pnpm.*start" | grep -v grep | awk '{print $2}' || true)
+    if [ ! -z "$pnpm_pids" ]; then
+        log "Found pnpm processes: $pnpm_pids"
+        for pid in $pnpm_pids; do
+            kill -KILL "$pid" 2>/dev/null || true
+        done
+        sleep 2
+    fi
+    
+    # Strategy 6: Kill anything on port 3000
+    log "Ensuring port 3000 is free..."
+    local port_pids=$(lsof -ti:3000 2>/dev/null || true)
+    if [ ! -z "$port_pids" ]; then
+        log "Found processes on port 3000: $port_pids"
+        for pid in $port_pids; do
+            kill -KILL "$pid" 2>/dev/null || true
+        done
+        sleep 2
+    fi
+    
+    # Final verification
+    if lsof -ti:3000 >/dev/null 2>&1; then
+        error "Port 3000 still occupied after all cleanup attempts"
+        return 1
+    fi
+    
+    log "✅ PM2 application stopped and port 3000 is free"
+    return 0
 }
 
 # Try to stop PM2 with timeout
